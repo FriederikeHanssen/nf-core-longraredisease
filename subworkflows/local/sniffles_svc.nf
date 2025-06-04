@@ -3,6 +3,7 @@
 nextflow.enable.dsl = 2
 
 include { SNIFFLES } from '../../modules/nf-core/sniffles/main.nf'
+include { GUNZIP as GUNZIP_SNIFFLES } from '../../modules/nf-core/gunzip/main.nf'
 
 workflow sniffles_workflow {
     
@@ -22,7 +23,17 @@ workflow sniffles_workflow {
         snf_output
     )
 
+    // Only run GUNZIP if VCF files were produced
+    ch_vcf_uncompressed = Channel.empty()
+    if (vcf_output) {
+        GUNZIP_SNIFFLES(SNIFFLES.out.vcf)
+        ch_vcf_uncompressed = GUNZIP_SNIFFLES.out.gunzip
+    }
+
     emit:
-    vcf     = SNIFFLES.out.vcf
-    tbi     = SNIFFLES.out.tbi
-    snf     = SNIFFLES.out.snf }
+    vcf         = ch_vcf_uncompressed     // Uncompressed VCF files
+    vcf_gz      = SNIFFLES.out.vcf        // Original compressed VCF files
+    tbi         = SNIFFLES.out.tbi        // Tabix index files
+    snf         = SNIFFLES.out.snf        // SNF files
+    versions    = SNIFFLES.out.versions   // Version information
+}
