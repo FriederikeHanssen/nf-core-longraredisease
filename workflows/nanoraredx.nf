@@ -113,32 +113,32 @@ workflow nanoraredx {
 
    // Rename outputs 
 
-   ch_sniffles_renamed = sniffles_workflow.out.vcf
-    .map { meta, vcf ->
-        def new_name = "${meta.id}_sniffles.vcf"
-        def renamed_vcf = vcf.copyTo(new_name)
-        tuple(meta, renamed_vcf)
-    }
+//    ch_sniffles_renamed = sniffles_workflow.out.vcf
+//     .map { meta, vcf ->
+//         def new_name = "${meta.id}_sniffles.vcf"
+//         def renamed_vcf = vcf.copyTo(new_name)
+//         tuple(meta, renamed_vcf)
+//     }
 
-     ch_cutesv_renamed = cutesv_workflow.out.vcf
-      .map { meta, vcf ->
-        def new_name = "${meta.id}_cutesv.vcf"
-        def renamed_vcf = vcf.copyTo(new_name)
-        tuple(meta, renamed_vcf)
-    }
+//      ch_cutesv_renamed = cutesv_workflow.out.vcf
+//       .map { meta, vcf ->
+//         def new_name = "${meta.id}_cutesv.vcf"
+//         def renamed_vcf = vcf.copyTo(new_name)
+//         tuple(meta, renamed_vcf)
+//     }
 
-     ch_svim_renamed = svim_workflow.out.vcf
-       .map { meta, vcf ->
-        def new_name = "${meta.id}_svim.vcf"
-        def renamed_vcf = vcf.copyTo(new_name)
-        tuple(meta, renamed_vcf)
-    }
+//      ch_svim_renamed = svim_workflow.out.vcf
+//        .map { meta, vcf ->
+//         def new_name = "${meta.id}_svim.vcf"
+//         def renamed_vcf = vcf.copyTo(new_name)
+//         tuple(meta, renamed_vcf)
+//     }
 
     // Collect all SV VCF files from the subworkflows
 
-    ch_vcfs_grouped = ch_sniffles_renamed
-    .mix(ch_cutesv_renamed)
-    .mix(ch_svim_renamed)
+    ch_vcfs_grouped = sniffles_workflow.out.vcf
+    .mix(svim_workflow.out.vcf)
+    .mix(cutesv_workflow.out.vcf)
     .groupTuple()
     .map { meta, vcfs -> tuple(meta, vcfs) }
 
@@ -153,6 +153,7 @@ workflow nanoraredx {
         params.estimate_distanced_by_sv_size,
         params.min_sv_size
     )
+
 
    // Collect the merged VCF file
     survivor_merge_workflow.out.vcf.view { meta, vcf -> 
@@ -183,6 +184,7 @@ workflow nanoraredx {
 //     survivor_merge_workflow.out.vcf
 //  --run_survivor_filter false
 
+// if close around if params. ......{}
     survivor_filter_workflow(
     survivor_merge_workflow.out.vcf,
     mosdepth_workflow.out.lowcov_bed,

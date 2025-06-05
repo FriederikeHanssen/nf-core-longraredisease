@@ -1,3 +1,4 @@
+
 process SNIFFLES {
     tag "$meta.id"
     label 'process_single'
@@ -63,3 +64,4 @@ process SNIFFLES {
     END_VERSIONS
     """
 }
+// patch this module gunzip use seqera containers 

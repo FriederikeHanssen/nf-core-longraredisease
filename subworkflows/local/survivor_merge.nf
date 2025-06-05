@@ -22,6 +22,7 @@ workflow survivor_merge_workflow {
         }
         .set { ch_vcf_input }
 
+// max_dist = 1000
     SURVIVOR_MERGE(
         ch_vcf_input,
         max_dist,

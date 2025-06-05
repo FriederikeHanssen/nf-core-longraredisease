@@ -20,16 +20,15 @@ process SVIM {
 
     script:
     def args = task.ext.args ?: ''
-    def outdir = "${meta.id}_svim"
-
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
     svim alignment \
-    ${outdir} \\
+    ${prefix} \\
     ${bam} \\
     ${fasta} \\
     $args
 
-    mv ${outdir}/variants.vcf ${meta.id}.vcf
+    mv ${prefix}/variants.vcf ${prefix}.vcf
 
     cat <<-END_VERSIONS > versions.yml 
     "${task.process}":
