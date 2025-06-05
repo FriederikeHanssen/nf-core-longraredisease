@@ -1,6 +1,6 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl = 2
+// This workflow uses CUTESV to call structural variants (SVs) from BAM files.
+// It takes BAM files (with optional FASTA reference) and outputs a VCF file with SV calls.
+// It also compresses and indexes the VCF file using bgzip and tabix.
 
 include { CUTESV } from '../../modules/nf-core/cutesv/main.nf'
 include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_CUTESV} from '../../modules/nf-core/tabix/bgziptabix/main.nf'

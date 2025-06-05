@@ -11,6 +11,8 @@ include { cutesv_workflow    } from '../subworkflows/local/cutesv_svc.nf'
 include { svim_workflow      } from '../subworkflows/local/svim_svc.nf'
 include {mosdepth_workflow} from '../subworkflows/local/mosdepth.nf'
 include { survivor_merge_workflow } from '../subworkflows/local/survivor_merge.nf'
+include { survivor_filter_workflow } from '../subworkflows/local/survivor_filter.nf'
+include { clair3_snv_workflow } from '../subworkflows/local/clair3_snv.nf'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -31,6 +33,10 @@ workflow nanoraredx {
     ch_fasta = Channel
         .fromPath(params.fasta_file, checkIfExists: true)
         .map { fasta -> tuple([id: "ref"], fasta) }
+
+    ch_fai = Channel
+        .fromPath("${params.fasta_file}.fai", checkIfExists: true)
+        .map { fai -> tuple([id: "ref_fai"], fai) }
 
     ch_trf = Channel
         .fromPath(params.tandem_file, checkIfExists: true)
@@ -87,30 +93,71 @@ workflow nanoraredx {
         ch_fasta
     )
 
+    // Run Clair3 SNV calling on the aligned BAM files
+    ch_input_clair3 = ch_input_bam.map { meta, bam, bai ->
+    tuple(
+        meta, 
+        bam, 
+        bai, 
+        params.clair3_model,     // Use parameter
+        [],                      // user_model (empty)
+        params.clair3_platform   // Use parameter
+    )
+    }
+    
+    clair3_snv_workflow(
+        ch_input_clair3,
+        ch_fasta,
+        ch_fai
+    )
+
+   // Rename outputs 
+
+   ch_sniffles_renamed = sniffles_workflow.out.vcf
+    .map { meta, vcf ->
+        def new_name = "${meta.id}_sniffles.vcf"
+        def renamed_vcf = vcf.copyTo(new_name)
+        tuple(meta, renamed_vcf)
+    }
+
+     ch_cutesv_renamed = cutesv_workflow.out.vcf
+      .map { meta, vcf ->
+        def new_name = "${meta.id}_cutesv.vcf"
+        def renamed_vcf = vcf.copyTo(new_name)
+        tuple(meta, renamed_vcf)
+    }
+
+     ch_svim_renamed = svim_workflow.out.vcf
+       .map { meta, vcf ->
+        def new_name = "${meta.id}_svim.vcf"
+        def renamed_vcf = vcf.copyTo(new_name)
+        tuple(meta, renamed_vcf)
+    }
+
     // Collect all SV VCF files from the subworkflows
 
-    //  ch_vcfs_grouped = sniffles_workflow.out.vcf
-    //  .mix(cutesv_workflow.out.vcf)
-    //  .mix(svim_workflow.out.vcf)
-    //  .groupTuple()
-    //  .map { meta, vcfs -> tuple(meta, vcfs) }
+    ch_vcfs_grouped = ch_sniffles_renamed
+    .mix(ch_cutesv_renamed)
+    .mix(ch_svim_renamed)
+    .groupTuple()
+    .map { meta, vcfs -> tuple(meta, vcfs) }
 
     // Merge SV VCF files using Survivor
 
-    // survivor_merge_workflow(
-    //     ch_vcfs_grouped,
-    //     params.max_distance_breakpoints,
-    //     params.min_supporting_callers,
-    //     params.account_for_type,
-    //     params.account_for_sv_strands,
-    //     params.estimate_distanced_by_sv_size,
-    //     params.min_sv_size
-    // )
+    survivor_merge_workflow(
+        ch_vcfs_grouped,
+        params.max_distance_breakpoints,
+        params.min_supporting_callers,
+        params.account_for_type,
+        params.account_for_sv_strands,
+        params.estimate_distanced_by_sv_size,
+        params.min_sv_size
+    )
 
-    // Collect the merged VCF file
-    // survivor_merge_workflow.out.vcf.view { meta, vcf -> 
-    //     "Merged VCF for ${meta.id}: ${vcf}"
-    // }
+   // Collect the merged VCF file
+    survivor_merge_workflow.out.vcf.view { meta, vcf -> 
+        "Merged VCF for ${meta.id}: ${vcf}"
+    }
 
     // Calculate coverage using mosdepth
     ch_input_mosdepth = ALIGN_MINIMAP2.out.ch_sorted_bam
@@ -126,7 +173,24 @@ workflow nanoraredx {
         [[:], []]
      )
 
+// Create conditional channels
+// ch_for_filtering = params.run_survivor_filter ? 
+//     survivor_merge_workflow.out.vcf : 
+//     Channel.empty()
 
+// ch_skip_filtering = params.run_survivor_filter ? 
+//     Channel.empty() : 
+//     survivor_merge_workflow.out.vcf
+//  --run_survivor_filter false
+
+    survivor_filter_workflow(
+    survivor_merge_workflow.out.vcf,
+    mosdepth_workflow.out.lowcov_bed,
+    params.min_sv_size,
+    -1,               // No max SV size filter
+    0.0,              // No AF filter
+    -1                // No read support filter
+)
 
 }
 
