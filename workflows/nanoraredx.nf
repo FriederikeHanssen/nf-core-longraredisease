@@ -184,8 +184,13 @@ workflow nanoraredx {
     //     }
 // Input parameters - reference genome and tandem repeat file
     ch_spectre_reference = Channel
-        .fromPath(params.fasta_file, checkIfExists: true)
-        .map { spectre_fasta -> tuple([id: "spectre_ref"], spectre_fasta) }
+    .fromPath(params.spectre_snv_vcf, checkIfExists: true)
+    .map { vcf_file -> 
+        def sample_id = vcf_file.baseName.split('_')[0]
+        return [id: sample_id]
+    }
+    .combine(Channel.fromPath(params.spectre_fasta_file, checkIfExists: true))
+    .map { meta, fasta -> tuple(meta, fasta) }
 
     
 
