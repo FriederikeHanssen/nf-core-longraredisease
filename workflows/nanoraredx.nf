@@ -14,7 +14,7 @@ include { survivor_merge_workflow } from '../subworkflows/local/survivor_merge.n
 include { survivor_filter_workflow } from '../subworkflows/local/survivor_filter_lowcov.nf'
 include { clair3_snv_workflow } from '../subworkflows/local/clair3_snv.nf'
 include { spectre_cnv_workflow } from '../subworkflows/local/spectre_cnv.nf'
-
+include { qdnaseq_cnv_workflow } from '../subworkflows/local/qdnaseq_cnv'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,13 +196,33 @@ workflow nanoraredx {
 
 // Run SPECTRE CNV calling
    // Run SPECTRE CNV calling
-    spectre_cnv_workflow(
+
+        if (params.cnv) {
+        // cnv calling with qdnaseq
+        if (params.use_qdnaseq) {
+            results_cnv = qdnaseq_cnv_workflow(
+        ch_input_bam,
+        params.genome_build,
+        params.qdnaseq_bin_size,
+        params.method,
+        params.cutoff,
+        params.cutoff_del,
+        params.cutoff_loss,
+        params.cutoff_gain,
+        params.cellularity
+    )
+        // cnv calling with spectre
+        } else {
+            results_cnv =  spectre_cnv_workflow(
         params.spectre_mosdepth,
+        params.spectre_bin_size,
         ch_spectre_reference,
         params.spectre_snv_vcf,
         params.spectre_metadata,
         params.spectre_blacklist
     )
+        }
+        }
 
 
 

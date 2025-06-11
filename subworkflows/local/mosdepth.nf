@@ -3,7 +3,7 @@
 //
 
 include { MOSDEPTH } from '../../modules/nf-core/mosdepth/main.nf'
-include { MOSDEPTH_LOW_COV_FILTER} from '../../modules/local/mosdepth_low_cov.nf'
+include { MOSDEPTH_LOW_COV_FILTER} from '../../modules/local/mosdepth_low_cov/main.nf'
 include { GUNZIP } from '../../modules/nf-core/gunzip/main.nf'
 // This workflow takes BAM files (with optional FASTA reference) and runs MOSDEPTH to calculate depth of coverage.
 

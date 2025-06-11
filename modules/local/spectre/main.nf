@@ -9,10 +9,12 @@ process SPECTRE {
 
     input:
     path(mosdepth_dir)
+    val(bin_size)
     tuple val(meta), path(reference)
     path(snv_vcf)
     path(metadata_file)
     path(blacklist)
+
     
     output:
     tuple val(meta), path("*.vcf")           , emit: vcf
@@ -32,6 +34,7 @@ process SPECTRE {
     """
     spectre CNVCaller \\
         --coverage ${mosdepth_dir} \\
+        --bin-size ${bin_size} \\
         --sample-id ${meta.id} \\
         --output-dir . \\
         --reference ${reference} \\
