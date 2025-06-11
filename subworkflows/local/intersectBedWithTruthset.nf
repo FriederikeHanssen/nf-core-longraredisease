@@ -1,0 +1,57 @@
+// // Optional
+// ensure to output the exact intersection of A and B to only benchmark
+// // against regions that have been analysed by the workflow
+// process intersectBedWithTruthset {
+//     label "wf_human_sv"
+//     cpus 1
+//     memory 4.GB
+//     input:
+//         path target_bed
+//         path user_truthset_bed
+//     output:
+//         path "target_truthset.bed", emit: intersected_bed
+//     script:
+//     // use the bundled benchmark BED if the user_truthset_bed is the dummy
+//     def tru_bed_arg = user_truthset_bed.name.startsWith("OPTIONAL_FILE") ? "\${WFSV_EVAL_DATA_PATH}/benchmark.bed" : user_truthset_bed
+//     """
+//     bedtools intersect \
+//         -a ${tru_bed_arg} \
+//         -b $target_bed \
+//         > target_truthset.bed
+//     if [ ! -s target_truthset.bed ]
+//     then
+//         echo "No overlaps found between truth and target"
+//         echo "Chr names in your target or reference and truthset may differ"
+//         exit 1
+//     fi
+//     """
+// }
+
+// // --dup-to-ins included to handle the hg2 NIST data set where DUP are coded as INS
+// process truvari {
+//     label "wf_human_sv"
+//     cpus 1
+//     memory 4.GB
+//     input:
+//         tuple path(ref), path(ref_idx), path(ref_cache), env(REF_PATH)
+//         tuple val(xam_meta), path(calls_vcf), path(calls_vcf_tbi)
+//         tuple path(user_truthset_vcf), path(user_truthset_tbi)
+//         file include_bed
+//     output:
+//         path "*.truvari.json", emit: truvari_json
+//     script:
+//     // use the bundled benchmark data if the user_truthset_vcf is the dummy
+//     def tru_vcf_arg = user_truthset_vcf.name.startsWith("OPTIONAL_FILE") ? "\${WFSV_EVAL_DATA_PATH}/benchmark.vcf.gz" : user_truthset_vcf
+//     """
+//     truvari bench \
+//         --passonly \
+//         --pctsim 0 \
+//         --dup-to-ins \
+//         -b ${tru_vcf_arg} \
+//         -c $calls_vcf \
+//         -f ${ref} \
+//         -o ${xam_meta.alias} \
+//         --includebed $include_bed
+//     mv ${xam_meta.alias}/summary.txt ${xam_meta.alias}.truvari.json
+//     """
+// }

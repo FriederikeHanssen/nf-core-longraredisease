@@ -1,0 +1,94 @@
+name: "spectre"
+description: "Copy number variant calling using SPECTRE for long-read sequencing data"
+keywords:
+  - cnv
+  - copy number variants
+  - long-read
+  - nanopore
+  - structural variants
+tools:
+  - "spectre":
+      description: "Copy number caller for long read data including SNV utilization"
+      homepage: "https://github.com/fritzsedlazeck/Spectre"
+      documentation: "https://github.com/fritzsedlazeck/Spectre"
+      tool_dev_url: "https://github.com/fritzsedlazeck/Spectre"
+      licence: "['MIT']"
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', single_end:false ]
+  - mosdepth_dir:
+      type: directory
+      description: Directory containing mosdepth output files
+      pattern: "*"
+  - meta2:
+      type: map
+      description: |
+        Groovy Map containing reference information
+        e.g. [ id:'reference' ]
+  - reference:
+      type: file
+      description: Reference genome FASTA file
+      pattern: "*.{fa,fasta,fa.gz,fasta.gz}"
+  - meta3:
+      type: map
+      description: |
+        Groovy Map containing SNV VCF information
+        e.g. [ id:'snv' ]
+  - snv_vcf:
+      type: file
+      description: SNV VCF file (optional)
+      pattern: "*.{vcf,vcf.gz}"
+  - meta4:
+      type: map
+      description: |
+        Groovy Map containing metadata file information
+        e.g. [ id:'metadata' ]
+  - metadata_file:
+      type: file
+      description: Metadata file for N regions (optional)
+      pattern: "*.mdr"
+  - meta5:
+      type: map
+      description: |
+        Groovy Map containing blacklist information
+        e.g. [ id:'blacklist' ]
+  - blacklist:
+      type: file
+      description: Blacklist BED file (optional)
+      pattern: "*.bed"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', single_end:false ]
+  - vcf:
+      type: file
+      description: CNV calls in VCF format
+      pattern: "*.vcf.gz"
+  - tbi:
+      type: file
+      description: Index for VCF file
+      pattern: "*.vcf.gz.tbi"
+  - bed:
+      type: file
+      description: CNV calls in BED format
+      pattern: "*.bed"
+  - spc:
+      type: file
+      description: SPECTRE intermediate file for population mode
+      pattern: "*.spc"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@your_github_username"
+maintainers:
+  - "@your_github_username"

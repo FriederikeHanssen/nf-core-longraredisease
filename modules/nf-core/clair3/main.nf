@@ -49,6 +49,11 @@ process CLAIR3 {
         --platform=$platform \\
         --model=$model \\
         $args
+    
+    mv merge_output.vcf.gz ${prefix}_merge_output.vcf.gz
+    mv merge_output.vcf.gz.tbi ${prefix}_merge_output.vcf.gz.tbi
+
+    
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
