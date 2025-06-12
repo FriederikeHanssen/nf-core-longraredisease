@@ -15,7 +15,7 @@ include { survivor_filter_workflow } from '../subworkflows/local/survivor_filter
 include { clair3_snv_workflow } from '../subworkflows/local/clair3_snv.nf'
 include { spectre_cnv_workflow } from '../subworkflows/local/spectre_cnv.nf'
 include { qdnaseq_cnv_workflow } from '../subworkflows/local/qdnaseq_cnv'
-
+include { straglr_genotype_workflow } from '../subworkflows/local/straglr_genotype.nf'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -223,7 +223,31 @@ workflow nanoraredx {
     )
         }
         }
+    else {
+        results_cnv = Channel.empty()
+        }
+        
 
+    //     if (!params.snp && !params.sv && !params.mod && !params.cnv && !params.str) {
+    //     log.error (colors.red + "No work to be done! Choose one or more workflows to run from [--snp, --sv, --cnv, --str, --mod]" + colors.reset)
+    //     can_start = false
+    // }
+
+        // wf-human-str
+    if (params.str) {
+        // use haplotagged bam from snp() as input to str()
+        bam_channel_str = ch_input_bam
+
+        results_str = straglr_genotype_workflow(
+          bam_channel_str,
+          ch_fasta,
+          params.str_bed_file
+        )
+        
+        } else {
+
+        results_str = Channel.empty()
+        }
 
 
 }
