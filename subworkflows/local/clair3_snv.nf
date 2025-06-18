@@ -1,7 +1,7 @@
 // This workflow is for clair3
 
 include { CLAIR3 } from '../../modules/nf-core/clair3/main.nf'
-workflow clair3_snv_workflow {
+workflow clair3_snv_subworkflow {
     take:
     input_bam    // channel: tuple(val(meta), path(bam), path(bai))
     fasta        // channel: tuple(val(meta2), path(fasta))

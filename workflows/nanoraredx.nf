@@ -3,19 +3,37 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { bam_merge_workflow } from '../subworkflows/local/bam_merge.nf'
-include { bam_to_fastq_workflow } from '../subworkflows/local/bam_to_fastq.nf'
-include {ALIGN_MINIMAP2} from '../subworkflows/local/align_minimap2.nf'
-include { sniffles_workflow } from '../subworkflows/local/sniffles_svc.nf'
-include { cutesv_workflow    } from '../subworkflows/local/cutesv_svc.nf'
-include { svim_workflow      } from '../subworkflows/local/svim_svc.nf'
-include {mosdepth_workflow} from '../subworkflows/local/mosdepth.nf'
-include { survivor_merge_workflow } from '../subworkflows/local/survivor_merge.nf'
-include { survivor_filter_workflow } from '../subworkflows/local/survivor_filter_lowcov.nf'
-include { clair3_snv_workflow } from '../subworkflows/local/clair3_snv.nf'
-include { spectre_cnv_workflow } from '../subworkflows/local/spectre_cnv.nf'
-include { qdnaseq_cnv_workflow } from '../subworkflows/local/qdnaseq_cnv'
-include { straglr_genotype_workflow } from '../subworkflows/local/straglr_genotype.nf'
+include { samtools_merge_bam_subworkflow } from '../subworkflows/local/samtools_merge_bam.nf'
+include { samtools_bam_to_fastq_subworkflow  } from '../subworkflows/local/samtools_bam_to_fastq.nf'
+include { minimap2_align_subworkflow } from '../subworkflows/local/minimap2_align.nf'
+include { mosdepth_cnv_depth_subworkflow } from '../subworkflows/local/mosdepth_cnv_depth.nf'
+//include { samtools_bam_downsample_subworkflow } from '../subworkflows/local/samtools_bam_downsample.nf' // optional
+// include { nanoplot_subworkflow } from '../subworkflows/local/nanoplot.nf'
+
+include { sniffles_sv_subworkflow } from '../subworkflows/local/sniffles_sv.nf'
+include { cutesv_sv_subworkflow    } from '../subworkflows/local/cutesv_sv.nf'
+include { svim_sv_subworkflow      } from '../subworkflows/local/svim_sv.nf'
+include { survivor_merge_sv_subworkflow } from '../subworkflows/local/survivor_merge_sv.nf'
+// include { filterbycov_sv_subworkflow } from '../subworkflows/local/filtercalls_sv.nf'
+// include { filter_vcf_insdeldup_subworkflow } from '../subworkflows/local/filter_vcf_insdeldup.nf'
+// include {savanna_sv_annotation_subworkflow} from '../subworkflows/local/savanna_sv_annotation.nf'
+
+// include { clair3_model_selection_subworkflow } from '../subworkflows/local/clair3_model_selection.nf'
+include { clair3_snv_subworkflow } from '../subworkflows/local/clair3_snv.nf'
+include { deepvariant_snv_subworkflow } from '../subworkflows/local/deepvariant_snv.nf'
+// include {longphase_snp_subworkflow} from '../subworkflows/local/longphase_snp.nf'
+
+include { spectre_cnv_subworkflow } from '../subworkflows/local/spectre_cnv.nf'
+// include {rounddp_spectre_str_subworkflow} from '../subworkflows/local/rounddp_spectre_str.nf'
+include { qdnaseq_cnv_subworkflow } from '../subworkflows/local/qdnaseq_cnv'
+
+include { straglr_str_subworkflow } from '../subworkflows/local/straglr_str.nf'
+
+// include { modkit_mc_subworkflow } from '../subworkflows/local/modkit_mc.nf'
+// include { meow_mc_subworkflow } from '../subworkflows/local/meow_mc.nf'
+//  include { unifyvcf_sv_snv_str_subworkflow } from '../subworkflows/local/unifyvcf_sv_snv_str.nf'
+
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -24,15 +42,8 @@ include { straglr_genotype_workflow } from '../subworkflows/local/straglr_genoty
 
 workflow nanoraredx {
 
-    // ch_input_bam = Channel
-    //     .fromPath(params.bam_file, checkIfExists: true)
-    //     .map { bam ->
-    //         def bai = file("${bam}.bai")
-    //         def meta = [ id: bam.getBaseName().replaceFirst(/\.bam$/, '') ]
-    //         tuple(meta, bam, bai)
-    //     }
+//  Collect reference files
 
-// Input parameters - reference genome and tandem repeat file
     ch_fasta = Channel
         .fromPath(params.fasta_file, checkIfExists: true)
         .map { fasta -> tuple([id: "ref"], fasta) }
@@ -47,6 +58,7 @@ workflow nanoraredx {
 
 
 // Collect all BAMs for merging
+
     ch_bam_files = Channel.fromPath("${params.bam_dir}/*.bam")
         .map { bam ->
             def sample_id = bam.name.split('_')[0]
@@ -55,30 +67,51 @@ workflow nanoraredx {
         .groupTuple()
 
 // Run BAM merge workflow
-     bam_merge_workflow(ch_bam_files, [[:], []], [[:], []])
-    
+     samtools_merge_bam_subworkflow(ch_bam_files, [[:], []], [[:], []])
+
+
 // Convert merged unmapped BAMs to FASTQ using samtools fastq with methylation tags
-     bam_to_fastq_workflow(bam_merge_workflow.out.bam)
+     samtools_bam_to_fastq_subworkflow(samtools_merge_bam_subworkflow.out.bam)
     
+
 // Optional: View the FASTQ outputs
     // bam_to_fastq_workflow.out.other.view { meta, fastq_files ->
     //     "Sample ${meta.id}: Generated FASTQ files from merged BAM: ${fastq_files}"
     // }
 
+
 // Align fastq, sort and index  
-   ALIGN_MINIMAP2(
+   minimap2_align_subworkflow(
         ch_fasta,
-        bam_to_fastq_workflow.out.other
+        samtools_bam_to_fastq_subworkflow.out.other
     )
 
-// Collect the sorted BAM and BAI files from the alignment step
-    ch_input_bam = ALIGN_MINIMAP2.out.ch_sorted_bam
-    .join(ALIGN_MINIMAP2.out.ch_sorted_bai, by: 0)
+
+// Calculate coverage/cnv using mosdepth
+    ch_input_bam_bai_bed = minimap2_align_subworkflow.out.ch_sorted_bam
+    .join(minimap2_align_subworkflow.out.ch_sorted_bai, by: 0)
+    .map { meta, bam, bai ->
+        def bed = params.bed_file ? file(params.bed_file) : []
+        tuple(meta, bam, bai, bed)
+    }
+
+
+    mosdepth_cnv_depth_subworkflow (
+        ch_input_bam_bai_bed,
+        [[:], []]
+     )
+
+// Downsample bam files if specified 
+
+
+// Collect the sorted BAM and BAI files from the alignment step depending if downsampling is enabled or not
+    ch_input_bam = minimap2_align_subworkflow.out.ch_sorted_bam
+    .join(minimap2_align_subworkflow.out.ch_sorted_bai, by: 0)
     .map { meta, bam, bai -> tuple(meta, bam, bai) }
 
 
 // Parallel execution of SV calling subworkflows using original input BAMs
-    sniffles_workflow(
+    sniffles_sv_subworkflow(
         ch_input_bam,
         ch_fasta,
         ch_trf,
@@ -86,18 +119,43 @@ workflow nanoraredx {
         params.snf_output
     )
 
-    cutesv_workflow(
+    cutesv_sv_subworkflow(
         ch_input_bam,
         ch_fasta
     )
 
-    svim_workflow(
+    svim_sv_subworkflow(
         ch_input_bam,
         ch_fasta
     )
+
+// Boolean - filter calls by coverage
+// Boolean - filter calls by type
+// Merge SV calls from different callers using Survivor
+// Collect all SV VCF files from the subworkflows
+
+    ch_vcfs_grouped = sniffles_sv_subworkflow.out.vcf
+    .mix(svim_sv_subworkflow.out.vcf)
+    .mix(cutesv_sv_subworkflow.out.vcf)
+    .groupTuple()
+    .map { meta, vcfs -> tuple(meta, vcfs) }
+
+    // Merge SV VCF files using Survivor
+
+    survivor_merge_sv_subworkflow(
+        ch_vcfs_grouped,
+        params.max_distance_breakpoints,
+        params.min_supporting_callers,
+        params.account_for_type,
+        params.account_for_sv_strands,
+        params.estimate_distanced_by_sv_size,
+        params.min_sv_size
+    )
+
+
 
 // Run Clair3 SNV calling on the aligned BAM files
-    ch_input_clair3 = ch_input_bam.map { meta, bam, bai ->
+    ch_input_bam_clair3 = ch_input_bam.map { meta, bam, bai ->
     def id = bam.getBaseName().replaceAll(/\.bam$/, '')  // Remove .bam extension
     def updated_meta = meta + [ id: id ]                 // Inject/override `id` into meta
 
@@ -111,78 +169,31 @@ workflow nanoraredx {
     )
     }
 
+// Choose your own Clair3 model selection otherwise run teh standard before running Clair3 SNV calling
     
-    clair3_snv_workflow(
-        ch_input_clair3,
+
+// Run deepvariant SNV calling on the aligned BAM files - choose deepvariant/ clair3 or both
+// Run SNV calling using Clair3 or DeepVariant depending on --snv value
+
+
+    clair3_snv_subworkflow(
+            ch_input_bam_clair3,
+            ch_fasta,
+            ch_fai)
+
+   deepvariant_snv_subworkflow(
+        ch_input_bam_bai_bed,
         ch_fasta,
-        ch_fai
-    )
+        ch_fai,
+        [[:], []],
+        [[:], []])
 
-// Calculate coverage using mosdepth
-    ch_input_mosdepth = ALIGN_MINIMAP2.out.ch_sorted_bam
-    .join(ALIGN_MINIMAP2.out.ch_sorted_bai, by: 0)
-    .map { meta, bam, bai ->
-        def bed = params.bed_file ? file(params.bed_file) : []
-        tuple(meta, bam, bai, bed)
-    }
+// Run phasing with LongPhase on the aligned BAM files - optional if enabled  
+   
+// Run CNV calling with Spectre or QDNASeq
 
-
-     mosdepth_workflow(
-        ch_input_mosdepth,
-        [[:], []]
-     )
-
-// Debugging before calling SPECTRE
-// clair3_snv_workflow.out.vcf.view { "VCF for SPECTRE: $it" }
-// mosdepth_workflow.out.regions_bed.view { "Mosdepth files: $it" }
-// ch_fasta.view { "Reference for SPECTRE: $it" }
-
-// Collect all SV VCF files from the subworkflows
-
-    ch_vcfs_grouped = sniffles_workflow.out.vcf
-    .mix(svim_workflow.out.vcf)
-    .mix(cutesv_workflow.out.vcf)
-    .groupTuple()
-    .map { meta, vcfs -> tuple(meta, vcfs) }
-
-    // Merge SV VCF files using Survivor
-
-    survivor_merge_workflow(
-        ch_vcfs_grouped,
-        params.max_distance_breakpoints,
-        params.min_supporting_callers,
-        params.account_for_type,
-        params.account_for_sv_strands,
-        params.estimate_distanced_by_sv_size,
-        params.min_sv_size
-    )
-
-
-// Create conditional channels
-// ch_for_filtering = params.run_survivor_filter ? 
-//     survivor_merge_workflow.out.vcf : 
-//     Channel.empty()
-
-// ch_skip_filtering = params.run_survivor_filter ? 
-//     Channel.empty() : 
-//     survivor_merge_workflow.out.vcf
-//  --run_survivor_filter false
-
-// if close around if params. ......{}
-    survivor_filter_workflow(
-    survivor_merge_workflow.out.vcf,
-    mosdepth_workflow.out.lowcov_bed,
-    params.min_sv_size
-)
-
-// Get mosdepth directory 
-    // ch_spectre_mosdepth = mosdepth_workflow.out.regions_bed
-    //     .map { meta, bed_files ->
-    //         // Get the parent directory containing all mosdepth output files
-    //         def mosdepth_dir = bed_files[0].parent
-    //         tuple(meta, mosdepth_dir)
-    //     }
 // Input parameters - reference genome and tandem repeat file
+
     ch_spectre_reference = Channel
     .fromPath(params.spectre_snv_vcf, checkIfExists: true)
     .map { vcf_file -> 
@@ -192,15 +203,12 @@ workflow nanoraredx {
     .combine(Channel.fromPath(params.spectre_fasta_file, checkIfExists: true))
     .map { meta, fasta -> tuple(meta, fasta) }
 
-    
+// If spectre is selected then run RoundDP to remove NAs for compatibility with Geneyx
 
-// Run SPECTRE CNV calling
-   // Run SPECTRE CNV calling
-
-        if (params.cnv) {
+ if (params.cnv) {
         // cnv calling with qdnaseq
         if (params.use_qdnaseq) {
-            results_cnv = qdnaseq_cnv_workflow(
+            results_cnv = qdnaseq_cnv_subworkflow(
         ch_input_bam,
         params.genome_build,
         params.qdnaseq_bin_size,
@@ -212,8 +220,9 @@ workflow nanoraredx {
         params.cellularity
     )
         // cnv calling with spectre
+
         } else {
-            results_cnv =  spectre_cnv_workflow(
+            results_cnv =  spectre_cnv_subworkflow(
         params.spectre_mosdepth,
         params.spectre_bin_size,
         ch_spectre_reference,
@@ -223,22 +232,29 @@ workflow nanoraredx {
     )
         }
         }
+
     else {
         results_cnv = Channel.empty()
         }
+
+
+
         
 
-    //     if (!params.snp && !params.sv && !params.mod && !params.cnv && !params.str) {
-    //     log.error (colors.red + "No work to be done! Choose one or more workflows to run from [--snp, --sv, --cnv, --str, --mod]" + colors.reset)
-    //     can_start = false
-    // }
+//  Run STR calling with STRaglr
 
-        // wf-human-str
+    ch_input_bam_str = Channel.fromPath(params.str_bam, checkIfExists: true)
+    .map { bam ->
+        def bai = file("${bam}.bai")  // Assumes BAI is named same as BAM + .bai
+        def meta = [id: bam.getBaseName().replaceFirst(/\.bam$/, '')]
+        tuple(meta, bam, bai)
+    }
+
     if (params.str) {
         // use haplotagged bam from snp() as input to str()
-        bam_channel_str = ch_input_bam
+        bam_channel_str = ch_input_bam_str
 
-        results_str = straglr_genotype_workflow(
+        results_str = straglr_str_subworkflow(
           bam_channel_str,
           ch_fasta,
           params.str_bed_file
@@ -249,7 +265,14 @@ workflow nanoraredx {
         results_str = Channel.empty()
         }
 
+// Methylation calling with Modkit
 
+// Unify VCFs from different workflows
+
+    //     if (!params.snp && !params.sv && !params.mod && !params.cnv && !params.str) {
+    //     log.error (colors.red + "No work to be done! Choose one or more workflows to run from [--snp, --sv, --cnv, --str, --mod]" + colors.reset)
+    //     can_start = false
+    // }
 }
 
 /*

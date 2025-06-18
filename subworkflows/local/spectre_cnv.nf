@@ -5,7 +5,7 @@
 include { SPECTRE } from '../../modules/local/spectre/main'
 include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_SPECTRE} from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 
-workflow spectre_cnv_workflow {
+workflow spectre_cnv_subworkflow {
     take:
     ch_mosdepth_output    // channel: [ val(meta), path(mosdepth_dir) ]
     bin_size              // must be the same as mosdepth

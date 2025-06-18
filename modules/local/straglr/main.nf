@@ -29,7 +29,7 @@ process STRAGLR {
         ${reference} \\
         --loci ${bed_file} \\
         --sample ${meta.id} \\
-        ${prefix}.vcf \\
+        ${prefix} \\
         ${args} \\
 
 

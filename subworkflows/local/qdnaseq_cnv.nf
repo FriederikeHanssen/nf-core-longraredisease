@@ -4,7 +4,7 @@
 
 include { RUNQDNASEQ } from '../../modules/local/qdnaseq/main.nf'
 
-workflow qdnaseq_cnv_workflow {
+workflow qdnaseq_cnv_subworkflow {
     
     take:
     ch_bam_bai      // channel: [meta, bam, bai]
