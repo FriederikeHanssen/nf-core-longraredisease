@@ -37,6 +37,7 @@ process SNIFFLES {
     sniffles \\
         --input $input \\
         $reference \\
+        --sample-id ${meta.id} \\
         -t $task.cpus \\
         $tandem_repeats \\
         $vcf \\

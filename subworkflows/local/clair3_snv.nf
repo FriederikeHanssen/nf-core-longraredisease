@@ -21,7 +21,7 @@ workflow clair3_snv_subworkflow {
     emit:
     vcf      = CLAIR3.out.vcf
     tbi      = CLAIR3.out.tbi
-    phased_vcf = CLAIR3.out.phased_vcf
-    phased_tbi = CLAIR3.out.phased_tbi
+    // phased_vcf = CLAIR3.out.phased_vcf
+    // phased_tbi = CLAIR3.out.phased_tbi
     versions = ch_versions
 }

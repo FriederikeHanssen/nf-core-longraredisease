@@ -10,6 +10,11 @@
                         "git_sha": "1503efe8f6450e71218097f93cf43e4b625018d4",
                         "installed_by": ["modules"]
                     },
+                    "bcftools/reheader": {
+                        "branch": "master",
+                        "git_sha": "c9c3ef86c1892413b3c86fb38c4e39fd7288512f",
+                        "installed_by": ["modules"]
+                    },
                     "bedtools/intersect": {
                         "branch": "master",
                         "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",

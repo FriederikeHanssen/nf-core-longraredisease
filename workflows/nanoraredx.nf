@@ -21,6 +21,7 @@ include { survivor_merge_sv_subworkflow } from '../subworkflows/local/survivor_m
 // include { clair3_model_selection_subworkflow } from '../subworkflows/local/clair3_model_selection.nf'
 include { clair3_snv_subworkflow } from '../subworkflows/local/clair3_snv.nf'
 include { deepvariant_snv_subworkflow } from '../subworkflows/local/deepvariant_snv.nf'
+include { bcftools_concat_snv_subworkflow } from '../subworkflows/local/bcftools_concat_snv.nf'
 // include {longphase_snp_subworkflow} from '../subworkflows/local/longphase_snp.nf'
 
 include { spectre_cnv_subworkflow } from '../subworkflows/local/spectre_cnv.nf'
@@ -175,6 +176,53 @@ workflow nanoraredx {
 // Run deepvariant SNV calling on the aligned BAM files - choose deepvariant/ clair3 or both
 // Run SNV calling using Clair3 or DeepVariant depending on --snv value
 
+// if (params.snv) {
+//     if (params.use_deepvariant) {
+//         deepvariant_snv_subworkflow(
+//             ch_input_bam_bai_bed,
+//             ch_fasta,
+//             ch_fai,
+//             [[:], []],
+//             [[:], []])
+
+//         clair3_snv_subworkflow(
+//             ch_input_bam_clair3,
+//             ch_fasta,
+//             ch_fai)
+
+//         // Combine VCF files with their TBI indices
+//         // Assuming clair3_snv_subworkflow also has .vcf and .tbi outputs
+//         combined_vcfs = clair3_snv_subworkflow.out.vcf
+//             .join(clair3_snv_subworkflow.out.tbi, by: 0)  // Join Clair3 VCF with its TBI
+//             .join(
+//                 deepvariant_snv_subworkflow.out.vcf
+//                     .join(deepvariant_snv_subworkflow.out.vcf_tbi, by: 0),  // Join DeepVariant VCF with its TBI
+//                 by: 0
+//             )
+//             .map { meta, clair3_vcf, clair3_tbi, dv_vcf, dv_tbi ->
+//                 [
+//                     meta,
+//                     [clair3_vcf, dv_vcf],  // List of VCF files
+//                     [clair3_tbi, dv_tbi]   // List of corresponding TBI files
+//                 ]
+//             }
+
+//         results_snv = bcftools_concat_snv_subworkflow(combined_vcfs)
+        
+//         } 
+        
+//         else {
+//         // Only run Clair3 SNV calling
+//         results_snv = clair3_snv_subworkflow(
+//             ch_input_bam_clair3,
+//             ch_fasta,
+//             ch_fai)
+//             }
+//             } 
+
+//             else {
+//                 results_snv = Channel.empty()
+//                 }
 
     clair3_snv_subworkflow(
             ch_input_bam_clair3,

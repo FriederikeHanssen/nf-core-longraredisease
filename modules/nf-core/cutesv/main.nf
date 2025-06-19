@@ -27,6 +27,7 @@ process CUTESV {
         ${fasta} \\
         ${prefix}.vcf \\
         . \\
+        --sample ${meta.id} \\
         --threads $task.cpus \\
         $args
     cat <<-END_VERSIONS > versions.yml

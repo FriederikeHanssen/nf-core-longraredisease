@@ -4,7 +4,6 @@
 
 include { DEEPVARIANT_RUNDEEPVARIANT } from '../../modules/nf-core/deepvariant/rundeepvariant/main.nf'
 
-
 workflow deepvariant_snv_subworkflow {
     take:
     ch_input    // channel: [meta, bam, bai]

@@ -3,6 +3,7 @@
 nextflow.enable.dsl = 2
 
 include { SVIM } from '../../modules/local/svim/main.nf'
+include { BCFTOOLS_REHEADER as BCFTOOLS_REHEADER_SVIM } from '../../modules/local/bcftools_reheader/main.nf'
 include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_SVIM} from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 
 workflow svim_sv_subworkflow {
@@ -17,12 +18,17 @@ workflow svim_sv_subworkflow {
 
     // 2. Compress + index the VCF
     SVIM.out.vcf.map { meta, vcf -> tuple(meta, vcf) }
+                .set { ch_vcf_to_rehead }
+
+    BCFTOOLS_REHEADER_SVIM(ch_vcf_to_rehead)
+
+    BCFTOOLS_REHEADER_SVIM.out.vcf.map { meta, vcf -> tuple(meta, vcf) }
                 .set { ch_vcf_to_index }
 
     TABIX_BGZIPTABIX_SVIM(ch_vcf_to_index)
 
     emit:
-    vcf         = SVIM.out.vcf
+    vcf         = BCFTOOLS_REHEADER_SVIM.out.vcf
     vcf_gz      = TABIX_BGZIPTABIX_SVIM.out.gz_tbi
     versions    = SVIM.out.versions
 }
