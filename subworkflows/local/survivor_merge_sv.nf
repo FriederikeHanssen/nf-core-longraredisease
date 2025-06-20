@@ -3,6 +3,7 @@
 nextflow.enable.dsl = 2
 
 include { SURVIVOR_MERGE } from '../../modules/nf-core/survivor/merge/main.nf'
+include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_SURVIVOR} from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 
 workflow survivor_merge_sv_subworkflow {
 
@@ -33,7 +34,13 @@ workflow survivor_merge_sv_subworkflow {
         min_size
     )
 
+    SURVIVOR_MERGE.out.vcf.map { meta, vcf -> tuple(meta, vcf) }
+                  .set { ch_vcf_to_index }
+
+    // TABIX_BGZIPTABIX_SURVIVOR(ch_vcf_to_index)
+
     emit:
     vcf      = SURVIVOR_MERGE.out.vcf
+    // vcf_gz   = TABIX_BGZIPTABIX_SURVIVOR.out.gz_tbi
     versions = SURVIVOR_MERGE.out.versions
 }

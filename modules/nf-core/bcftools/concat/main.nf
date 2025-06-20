@@ -28,7 +28,7 @@ process BCFTOOLS_CONCAT {
                 args.contains("--output-type u") || args.contains("-Ou") ? "bcf" :
                 args.contains("--output-type z") || args.contains("-Oz") ? "vcf.gz" :
                 args.contains("--output-type v") || args.contains("-Ov") ? "vcf" :
-                "vcf"
+                "vcf.gz"
     def input = vcfs.sort{it.toString()}.join(" ")
     """
     ${create_input_index}
@@ -52,7 +52,7 @@ process BCFTOOLS_CONCAT {
                 args.contains("--output-type u") || args.contains("-Ou") ? "bcf" :
                 args.contains("--output-type z") || args.contains("-Oz") ? "vcf.gz" :
                 args.contains("--output-type v") || args.contains("-Ov") ? "vcf" :
-                "vcf"
+                "vcf.gz"
     def index_extension = args.contains("--write-index=tbi") || args.contains("-W=tbi") ? "tbi" :
                         args.contains("--write-index=csi") || args.contains("-W=csi") ? "csi" :
                         args.contains("--write-index") || args.contains("-W") ? "csi" :

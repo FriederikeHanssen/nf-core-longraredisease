@@ -15,6 +15,7 @@ process LONGPHASE_PHASE {
 
     output:
     tuple val(meta), path("*.vcf.gz"), emit: vcf
+    tuple val(meta), path("*SV*.vcf"), emit: sv_vcf, optional: true 
     path "versions.yml"              , emit: versions
 
     when:

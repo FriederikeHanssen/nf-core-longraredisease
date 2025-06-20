@@ -23,6 +23,7 @@ process SVIM {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     svim alignment \
+    --sample ${meta.id} \\
     ${prefix} \\
     ${bam} \\
     ${fasta} \\
