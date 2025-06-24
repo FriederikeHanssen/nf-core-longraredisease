@@ -5,7 +5,7 @@ process MOSDEPTH {
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/mosdepth:0.3.10--h4e814b3_1' :
-        'biocontainers/mosdepth:0.3.10--h4e814b3_1'}"
+        'biocontainers/mosdepth:0.3.3--h37c5b7d_2'}"
 
     input:
     tuple val(meta),  path(bam), path(bai), path(bed)
@@ -42,6 +42,12 @@ process MOSDEPTH {
     }
 
     """
+
+    export MOSDEPTH_Q0=NO_COVERAGE
+    export MOSDEPTH_Q1=LOW_COVERAGE
+    export MOSDEPTH_Q2=CALLABLE
+    export MOSDEPTH_Q3=HIGH_COVERAGE
+
     mosdepth \\
         --threads $task.cpus \\
         $interval \\
@@ -49,6 +55,8 @@ process MOSDEPTH {
         $args \\
         $prefix \\
         $bam
+
+    
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

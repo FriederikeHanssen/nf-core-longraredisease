@@ -3,8 +3,47 @@
 
 import argparse
 import sys
+import subprocess
 
 threshold_lookup = ['0'] + ['2'] * 10 + ['3'] * 9 + ['5'] * 20 + ['8'] * 100
+
+
+def get_vcf_info_fields(vcf_path):
+    """Get INFO field names from VCF header."""
+    try:
+        result = subprocess.run(['bcftools', 'view', '-h', vcf_path], 
+                              capture_output=True, text=True, check=True)
+        info_fields = []
+        for line in result.stdout.split('\n'):
+            if line.startswith('##INFO=<ID='):
+                field_id = line.split('ID=')[1].split(',')[0]
+                info_fields.append(field_id)
+        return info_fields
+    except subprocess.CalledProcessError:
+        return []
+
+
+def detect_support_field(vcf_path):
+    """Detect the appropriate support field for different SV callers."""
+    info_fields = get_vcf_info_fields(vcf_path)
+    
+    # Common support field names used by different SV callers
+    support_field_candidates = [
+        'SUPPORT',     # Sniffles
+        'RE',          # CuteSV (supporting reads)
+        'SUPPORT_READS', # Some versions
+        'DR',          # SVIM (supporting reads)
+        'DV',          # SVIM (variant reads)
+        'READS',       # Generic
+        'SR',          # Some callers use SR
+    ]
+    
+    for candidate in support_field_candidates:
+        if candidate in info_fields:
+            return candidate
+    
+    # If no standard support field found, return None
+    return None
 
 
 def import_total_depth(path):
@@ -78,6 +117,16 @@ def parse_arguments():
         default=None
     )
 
+    parser.add_argument(
+        "--support_field",
+        help=(
+            "Specify the INFO field name for read support "
+            "(auto-detected if not provided)."
+        ),
+        required=False,
+        default=None
+    )
+
     return parser.parse_args()
 
 
@@ -85,8 +134,16 @@ def main():
     """Run the entry point."""
     args = parse_arguments()
 
+    # Detect or use provided support field
+    support_field = args.support_field
+    if not support_field:
+        support_field = detect_support_field(args.vcf)
+    
+    if not support_field:
+        print("Error: Could not detect support field in VCF. Please specify --support_field manually.", file=sys.stderr)
+        sys.exit(1)
+
     # Get min read support filter
-    # Todo: Check this
     min_read_support = args.min_read_support_limit
     if args.min_read_support in ['auto']:
         avg_depth = import_total_depth(args.depth_summary)
@@ -97,7 +154,7 @@ def main():
         if detected_read_support > args.min_read_support_limit:
             min_read_support = detected_read_support
 
-    filter_min_read_support = f'INFO/SUPPORT >= {min_read_support}'
+    filter_min_read_support = f'INFO/{support_field} >= {min_read_support}'
 
     # Now, make string
     filter_string = f"-i '{filter_min_read_support}'"

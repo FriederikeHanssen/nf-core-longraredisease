@@ -3,8 +3,7 @@
 //
 
 include { MOSDEPTH } from '../../modules/nf-core/mosdepth/main.nf'
-include { MOSDEPTH_LOW_COV_FILTER} from '../../modules/local/mosdepth_low_cov/main.nf'
-include { GUNZIP } from '../../modules/nf-core/gunzip/main.nf'
+
 // This workflow takes BAM files (with optional FASTA reference) and runs MOSDEPTH to calculate depth of coverage.
 
 workflow mosdepth_cnv_depth_subworkflow {
@@ -24,8 +23,7 @@ workflow mosdepth_cnv_depth_subworkflow {
     )
     ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
 
-    // Extract low coverage regions (<10x)
-    MOSDEPTH_LOW_COV_FILTER(MOSDEPTH.out.regions_bed)
+
     
 
     emit:
@@ -41,6 +39,5 @@ workflow mosdepth_cnv_depth_subworkflow {
     quantized_csi  = MOSDEPTH.out.quantized_csi  // channel: [ val(meta), path(csi) ]
     thresholds_bed = MOSDEPTH.out.thresholds_bed // channel: [ val(meta), path(bed.gz) ]
     thresholds_csi = MOSDEPTH.out.thresholds_csi // channel: [ val(meta), path(csi) ]
-    lowcov_bed     = MOSDEPTH_LOW_COV_FILTER.out.lowcov_bed // channel: [ val(meta), path(bed) ]
     versions       = ch_versions                 // channel: [ versions.yml ]
 }
