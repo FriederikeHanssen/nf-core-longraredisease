@@ -32,8 +32,8 @@ workflow sniffles_sv_subworkflow {
 
     emit:
     vcf         = ch_vcf_uncompressed     // Uncompressed VCF files
-    vcf_gz      = SNIFFLES.out.vcf        // Original compressed VCF files
-    tbi         = SNIFFLES.out.tbi        // Tabix index files
-    snf         = SNIFFLES.out.snf        // SNF files
+    // vcf_gz      = SNIFFLES.out.vcf        // Original compressed VCF files
+    // tbi         = SNIFFLES.out.tbi        // Tabix index files
+    // snf         = SNIFFLES.out.snf        // SNF files
     versions    = SNIFFLES.out.versions   // Version information
 }

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 
 def round_DP_to_integer(input_lines):

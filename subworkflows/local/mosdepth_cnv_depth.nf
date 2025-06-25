@@ -35,8 +35,6 @@ workflow mosdepth_cnv_depth_subworkflow {
     per_base_csi   = MOSDEPTH.out.per_base_csi   // channel: [ val(meta), path(csi) ]
     regions_bed    = MOSDEPTH.out.regions_bed    // channel: [ val(meta), path(bed.gz) ]
     regions_csi    = MOSDEPTH.out.regions_csi    // channel: [ val(meta), path(csi) ]
-    quantized_bed  = MOSDEPTH.out.quantized_bed  // channel: [ val(meta), path(bed.gz) ]
-    quantized_csi  = MOSDEPTH.out.quantized_csi  // channel: [ val(meta), path(csi) ]
     thresholds_bed = MOSDEPTH.out.thresholds_bed // channel: [ val(meta), path(bed.gz) ]
     thresholds_csi = MOSDEPTH.out.thresholds_csi // channel: [ val(meta), path(csi) ]
     versions       = ch_versions                 // channel: [ versions.yml ]

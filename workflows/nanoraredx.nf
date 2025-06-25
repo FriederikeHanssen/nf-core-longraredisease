@@ -7,15 +7,23 @@ include { samtools_merge_bam_subworkflow } from '../subworkflows/local/samtools_
 include { samtools_bam_to_fastq_subworkflow  } from '../subworkflows/local/samtools_bam_to_fastq.nf'
 include { minimap2_align_subworkflow } from '../subworkflows/local/minimap2_align.nf'
 include { mosdepth_cnv_depth_subworkflow } from '../subworkflows/local/mosdepth_cnv_depth.nf'
+include { mosdepth_cov_analysis_subworkflow } from '../subworkflows/local/mosdepth_cov_analysis.nf'
 // include { nanoplot_subworkflow } from '../subworkflows/local/nanoplot.nf'
 
 include { sniffles_sv_subworkflow } from '../subworkflows/local/sniffles_sv.nf'
 include { cutesv_sv_subworkflow    } from '../subworkflows/local/cutesv_sv.nf'
 include { svim_sv_subworkflow      } from '../subworkflows/local/svim_sv.nf'
-include { survivor_merge_sv_subworkflow } from '../subworkflows/local/survivor_merge_sv.nf'
+
+// Filter by coverage for SV callers
 include { filterbycov_sv_svim } from '../subworkflows/local/filtersv_svim.nf'
 include { filterbycov_sv_sniffles } from '../subworkflows/local/filtersv_sniffles.nf'
 include { filterbycov_sv_cutesv } from '../subworkflows/local/filtersv_cutesv.nf'
+
+// Filter by intersect for SV caller
+include { survivor_merge_sv_subworkflow } from '../subworkflows/local/survivor_merge_sv.nf'
+include { filterbyintersect_sniffles_subworkflow } from '../subworkflows/local/filterbyintersect_sniffles.nf'
+include { filterbyintersect_cutesv_subworkflow } from '../subworkflows/local/filterbyintersect_cutesv.nf'
+include { filterbyintersect_svim_subworkflow } from '../subworkflows/local/filterbyintersect_svim.nf'
 // include {savanna_sv_annotation_subworkflow} from '../subworkflows/local/savanna_sv_annotation.nf'
 
 include { clair3_snv_subworkflow } from '../subworkflows/local/clair3_snv.nf'
@@ -24,7 +32,7 @@ include { bcftools_concat_snv_subworkflow } from '../subworkflows/local/bcftools
 include {longphase_subworkflow} from '../subworkflows/local/longphase.nf'
 
 include { spectre_cnv_subworkflow } from '../subworkflows/local/spectre_cnv.nf'
-// include {rounddp_spectre_str_subworkflow} from '../subworkflows/local/rounddp_spectre_str.nf'
+include {round_dp_spectre_subworkflow} from '../subworkflows/local/round_dp_spectre.nf'
 include { qdnaseq_cnv_subworkflow } from '../subworkflows/local/qdnaseq_cnv'
 
 include { straglr_str_subworkflow } from '../subworkflows/local/straglr_str.nf'
@@ -32,6 +40,8 @@ include { straglr_str_subworkflow } from '../subworkflows/local/straglr_str.nf'
 // include { modkit_mc_subworkflow } from '../subworkflows/local/modkit_mc.nf'
 // include { meow_mc_subworkflow } from '../subworkflows/local/meow_mc.nf'
 //  include { unifyvcf_sv_snv_str_subworkflow } from '../subworkflows/local/unifyvcf_sv_snv_str.nf'
+
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,6 +97,11 @@ workflow nanoraredx {
         [[:], []]
     )
 
+    mosdepth_cov_analysis_subworkflow (
+        ch_input_bam_bai_bed,
+        [[:], []]
+    )
+
     // Collect the sorted BAM and BAI files from the alignment step
     ch_input_bam = minimap2_align_subworkflow.out.ch_sorted_bam
         .join(minimap2_align_subworkflow.out.ch_sorted_bai, by: 0)
@@ -111,51 +126,55 @@ workflow nanoraredx {
         ch_fasta
     )
 
-    if (params.filter_sv_calls) {
-        // Filter individual SV caller results for all three callers
-        
-        // Filter Sniffles results
-        filterbycov_sv_sniffles(
-            sniffles_sv_subworkflow.out.vcf,
-            mosdepth_cnv_depth_subworkflow.out.summary_txt,
-            mosdepth_cnv_depth_subworkflow.out.quantized_bed,
-            params.chromosome_codes?.split(',') ?: ['chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrX','chrY','chrMT'],
-            params.min_read_support ?: 'auto',
-            params.min_read_support_limit ?: 2
-        )
-        
-        // Filter CuteSV results
-        filterbycov_sv_cutesv(
-            cutesv_sv_subworkflow.out.vcf,
-            mosdepth_cnv_depth_subworkflow.out.summary_txt,
-            mosdepth_cnv_depth_subworkflow.out.quantized_bed,
-            params.chromosome_codes?.split(',') ?: ['chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrX','chrY','chrMT'],
-            params.min_read_support ?: 'auto',
-            params.min_read_support_limit ?: 2
-        )
-        
-        // Filter SVIM results
-        filterbycov_sv_svim(
-            svim_sv_subworkflow.out.vcf,
-            mosdepth_cnv_depth_subworkflow.out.summary_txt,
-            mosdepth_cnv_depth_subworkflow.out.quantized_bed,
-            params.chromosome_codes?.split(',') ?: ['chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrX','chrY','chrMT'],
-            params.min_read_support ?: 'auto',
-            params.min_read_support_limit ?: 2
-        )
-        
-        // Use filtered VCFs for downstream analysis
-        ch_filtered_sniffles_vcf = filterbycov_sv_sniffles.out.filtered_vcf
-        ch_filtered_cutesv_vcf = filterbycov_sv_cutesv.out.filtered_vcf
-        ch_filtered_svim_vcf = filterbycov_sv_svim.out.filtered_vcf
-    } else {
-        ch_filtered_sniffles_vcf = sniffles_sv_subworkflow.out.vcf
-        ch_filtered_cutesv_vcf = cutesv_sv_subworkflow.out.vcf
-        ch_filtered_svim_vcf = svim_sv_subworkflow.out.vcf
-    }
+
+// Filter SV calls if requested
+
+if (params.filter_sv_calls) {
+    // Filter individual SV caller results for all three callers
+    
+    // Filter Sniffles results
+    filterbycov_sv_sniffles(
+        sniffles_sv_subworkflow.out.vcf,
+        mosdepth_cnv_depth_subworkflow.out.summary_txt,
+        mosdepth_cov_analysis_subworkflow.out.quantized_bed,
+        params.chromosome_codes,
+        params.min_read_support ?: 'auto',
+        params.min_read_support_limit ?: 2
+    )
+    
+    // Filter CuteSV results
+    filterbycov_sv_cutesv(
+        cutesv_sv_subworkflow.out.vcf,
+        mosdepth_cnv_depth_subworkflow.out.summary_txt,
+        mosdepth_cov_analysis_subworkflow.out.quantized_bed,
+        params.chromosome_codes,
+        params.min_read_support ?: 'auto',
+        params.min_read_support_limit ?: 2
+    )
+    
+    // Filter SVIM results
+    filterbycov_sv_svim(
+        svim_sv_subworkflow.out.vcf,
+        mosdepth_cnv_depth_subworkflow.out.summary_txt,
+        mosdepth_cov_analysis_subworkflow.out.quantized_bed,
+        params.chromosome_codes,
+        params.min_read_support ?: 'auto',
+        params.min_read_support_limit ?: 2
+    )
+    
+    // Use filtered VCFs for downstream analysis
+    ch_filtered_sniffles_vcf = filterbycov_sv_sniffles.out.filtered_vcf
+    ch_filtered_cutesv_vcf = filterbycov_sv_cutesv.out.filtered_vcf
+    ch_filtered_svim_vcf = filterbycov_sv_svim.out.filtered_vcf
+} else {
+    // Use original VCFs without filtering
+    ch_filtered_sniffles_vcf = sniffles_sv_subworkflow.out.vcf
+    ch_filtered_cutesv_vcf = cutesv_sv_subworkflow.out.vcf
+    ch_filtered_svim_vcf = svim_sv_subworkflow.out.vcf
+}
 
 // Merge SV calls from different callers using Survivor OR use individual caller results
-    if (params.merge_sv_calls) {
+if (params.merge_sv_calls) {
     // Create a channel that groups by sample ID only
     ch_vcfs_for_merging = ch_filtered_sniffles_vcf
         .map { meta, vcf -> [meta.id, vcf, 'sniffles'] }
@@ -171,8 +190,7 @@ workflow nanoraredx {
             [meta, vcfs]
         }
     
-    ch_vcfs_for_merging.view { "VCFs for merging: $it" }
-    
+    // Run SURVIVOR merge
     survivor_merge_sv_subworkflow(
         ch_vcfs_for_merging,
         params.max_distance_breakpoints,
@@ -182,8 +200,69 @@ workflow nanoraredx {
         params.estimate_distanced_by_sv_size,
         params.min_sv_size
     )
-}
 
+    
+
+    // Create bedtools input channels for each caller
+    // Create bedtools input channels for each caller (inline version)
+    ch_input_bedtools_sniffles = ch_filtered_sniffles_vcf
+    .join(survivor_merge_sv_subworkflow.out.bed, by: 0)
+    .map { meta, vcf, bed ->
+        def id = vcf.getBaseName().replaceAll(/\.vcf$/, '')
+        def updated_meta = meta + [id: id]
+        tuple(updated_meta, vcf, bed)
+    }
+    
+    ch_input_bedtools_cutesv = ch_filtered_cutesv_vcf
+    .join(survivor_merge_sv_subworkflow.out.bed, by: 0)
+    .map { meta, vcf, bed ->
+        def id = vcf.getBaseName().replaceAll(/\.vcf$/, '')
+        def updated_meta = meta + [id: id]
+        tuple(updated_meta, vcf, bed)
+    }
+    
+    ch_input_bedtools_svim = ch_filtered_svim_vcf
+    .join(survivor_merge_sv_subworkflow.out.bed, by: 0)
+    .map { meta, vcf, bed ->
+        def id = vcf.getBaseName().replaceAll(/\.vcf$/, '')
+        def updated_meta = meta + [id: id]
+        tuple(updated_meta, vcf, bed)
+    }
+
+    // Create chromosome sizes channel
+    ch_chrom_sizes = params.chrom_sizes ? 
+        Channel.value([[:], file(params.chrom_sizes)]) : 
+        Channel.value([[:], []])
+
+    // Run bedtools intersect for each caller
+    filterbyintersect_sniffles_subworkflow(
+        ch_input_bedtools_sniffles,
+        ch_chrom_sizes
+    )
+
+    filterbyintersect_cutesv_subworkflow(
+        ch_input_bedtools_cutesv,
+        ch_chrom_sizes
+    )
+
+    filterbyintersect_svim_subworkflow(
+        ch_input_bedtools_svim,
+        ch_chrom_sizes
+    )
+
+    // Set final output channels to intersected results
+    ch_final_sniffles_vcf = filterbyintersect_sniffles_subworkflow.out.intersect
+    ch_final_cutesv_vcf = filterbyintersect_cutesv_subworkflow.out.intersect
+    ch_final_svim_vcf = filterbyintersect_svim_subworkflow.out.intersect
+    ch_final_merged_bed = survivor_merge_sv_subworkflow.out.bed
+
+} else {
+    // Use individual caller results without merging
+    ch_final_sniffles_vcf = ch_filtered_sniffles_vcf
+    ch_final_cutesv_vcf = ch_filtered_cutesv_vcf
+    ch_final_svim_vcf = ch_filtered_svim_vcf
+    ch_final_merged_bed = Channel.empty()
+}
 // Run Clair3 SNV calling on the aligned BAM files
     ch_input_bam_clair3 = ch_input_bam.map { meta, bam, bai ->
         def id = bam.getBaseName().replaceAll(/\.bam$/, '')  // Remove .bam extension
@@ -333,9 +412,12 @@ workflow nanoraredx {
                 params.spectre_bin_size,
                 ch_spectre_reference,
                 params.spectre_snv_vcf,
-                params.spectre_metadata,
-                params.spectre_blacklist
+                params.spectre_metadata
+                // params.spectre_blacklist
             )
+
+            // Run round_dp_spectre if requested
+            // round_dp_spectre_subworkflow(spectre_cnv_subworkflow.out.vcf) - not working yet
         }
     } else {
         results_cnv = Channel.empty()

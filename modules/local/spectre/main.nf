@@ -13,7 +13,7 @@ process SPECTRE {
     tuple val(meta), path(reference)
     path(snv_vcf)
     path(metadata_file)
-    path(blacklist)
+    // path(blacklist)
 
     
     output:
@@ -40,7 +40,6 @@ process SPECTRE {
         --reference ${reference} \\
         --snv ${snv_vcf} \\
         --metadata ${metadata_file} \\
-        --blacklist ${blacklist} \\
         ${args}
 
     cat <<-END_VERSIONS > versions.yml

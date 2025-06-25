@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """The odd helper function.
 
 Be careful what you place in here. This file is imported into all glue.
