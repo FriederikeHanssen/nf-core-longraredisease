@@ -2,45 +2,52 @@
 
 import sys
 
-def round_DP_to_integer(input_lines):
+def round_depth_to_integer(input_lines):
     output_lines = []
     for line in input_lines:
         if line.startswith('#'):
-            # If it's a header line, remove leading and trailing spaces and append it to the output
-            output_lines.append(line.strip() + '\n')
+            output_lines.append(line.rstrip('\n') + '\n')
         else:
-            # If it's a data line, split it by tabs
             parts = line.strip().split('\t')
-            # Find the index of the DP field in the FORMAT column
             format_col = parts[8].split(':')
-            dp_index = format_col.index('DP')
-            # Split the DP values
-            dp_values = parts[9].split(':')[dp_index].split(',')
-            
-            # Round DP values or preserve 'nan'
-            rounded_dp_values = []
-            for dp in dp_values:
-                if dp.lower() == 'nan':
-                    rounded_dp_values.append('nan')  # Preserve 'nan'
+
+            # Look for DP or CD in the FORMAT column
+            if 'DP' in format_col:
+                depth_field = 'DP'
+            elif 'CD' in format_col:
+                depth_field = 'CD'
+            else:
+                output_lines.append(line + '\n')
+                continue  # No depth field to process
+
+            depth_index = format_col.index(depth_field)
+
+            # Get the values, split if comma-separated (should handle most VCFs)
+            sample_values = parts[9].split(':')
+            depth_values = sample_values[depth_index].split(',')
+
+            # Round, preserving 'nan'
+            rounded_values = []
+            for val in depth_values:
+                if val.lower() == 'nan':
+                    rounded_values.append('nan')
                 else:
-                    rounded_dp_values.append(str(round(float(dp))))  # Round the value
-            
-            # Join the rounded or preserved DP values back
-            dp_values_str = ','.join(rounded_dp_values)
-            
-            # Replace the DP field with the updated values
-            parts[9] = parts[9].replace(parts[9].split(':')[dp_index], dp_values_str)
-            # Append the modified line to the output
+                    try:
+                        rounded_values.append(str(round(float(val))))
+                    except ValueError:
+                        rounded_values.append(val)  # If value can't be converted, leave as is
+
+            sample_values[depth_index] = ','.join(rounded_values)
+            parts[9] = ':'.join(sample_values)
             output_lines.append('\t'.join(parts) + '\n')
     return output_lines
 
 def main():
     input_lines = sys.stdin.readlines()
-    rounded_vcf_lines = round_DP_to_integer(input_lines)
+    rounded_vcf_lines = round_depth_to_integer(input_lines)
 
     for line in rounded_vcf_lines:
         print(line, end='')
 
 if __name__ == "__main__":
     main()
-

@@ -3,9 +3,7 @@ process ROUND_DP {
     label 'process_single'
 
     conda "conda-forge::python=3.9"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/python:3.9--1' :
-        'biocontainers/python:3.9--1' }"
+    container "biocontainers/python:3.9--1"
 
     input:
     tuple val(meta), path(vcf)
@@ -21,7 +19,12 @@ process ROUND_DP {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    roundDP.py < ${vcf} > ${prefix}.vcf
+    # Handle compressed input
+    if [[ ${vcf} == *.gz ]]; then
+        zcat ${vcf} | roundDP.py > ${prefix}.vcf
+    else
+        roundDP.py < ${vcf} > ${prefix}.vcf
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

@@ -34,7 +34,6 @@ include {longphase_subworkflow} from '../subworkflows/local/longphase.nf'
 include { spectre_cnv_subworkflow } from '../subworkflows/local/spectre_cnv.nf'
 include {round_dp_spectre_subworkflow} from '../subworkflows/local/round_dp_spectre.nf'
 include { qdnaseq_cnv_subworkflow } from '../subworkflows/local/qdnaseq_cnv'
-
 include { straglr_str_subworkflow } from '../subworkflows/local/straglr_str.nf'
 
 // include { modkit_mc_subworkflow } from '../subworkflows/local/modkit_mc.nf'
@@ -61,7 +60,7 @@ workflow nanoraredx {
         .map { fai -> tuple([id: "ref_fai"], fai) }
 
     ch_trf = Channel
-        .fromPath(params.tandem_file, checkIfExists: true)
+        .fromPath(params.sniffles_tandem_file, checkIfExists: true)
         .map { bed -> tuple([id: "trf"], bed) }
 
 // Collect all BAMs for merging
@@ -201,10 +200,8 @@ if (params.merge_sv_calls) {
         params.min_sv_size
     )
 
-    
-
     // Create bedtools input channels for each caller
-    // Create bedtools input channels for each caller (inline version)
+
     ch_input_bedtools_sniffles = ch_filtered_sniffles_vcf
     .join(survivor_merge_sv_subworkflow.out.bed, by: 0)
     .map { meta, vcf, bed ->
@@ -229,7 +226,7 @@ if (params.merge_sv_calls) {
         tuple(updated_meta, vcf, bed)
     }
 
-    // Create chromosome sizes channel
+    // Create chromosome sizes channel; input for bedtools intersect 
     ch_chrom_sizes = params.chrom_sizes ? 
         Channel.value([[:], file(params.chrom_sizes)]) : 
         Channel.value([[:], []])
@@ -358,6 +355,7 @@ if (params.merge_sv_calls) {
             ch_fasta,
             ch_fai
         )
+
     } else if (params.phase){
         ch_longphase_input = ch_input_bam
             .join(results_snv.vcf, by: 0, remainder: true)
@@ -380,7 +378,7 @@ if (params.merge_sv_calls) {
 
     }
 
-// Run CNV calling with Spectre or QDNASeq
+// Separate channel because spectre can not be tested on subset of data
     ch_spectre_reference = Channel
         .fromPath(params.spectre_snv_vcf, checkIfExists: true)
         .map { vcf_file -> 
@@ -389,7 +387,7 @@ if (params.merge_sv_calls) {
         }
         .combine(Channel.fromPath(params.spectre_fasta_file, checkIfExists: true))
         .map { meta, fasta -> tuple(meta, fasta) }
-
+// Run CNV calling with Spectre or QDNASeq
     if (params.cnv) {
         // cnv calling with qdnaseq
         if (params.use_qdnaseq) {
@@ -409,19 +407,20 @@ if (params.merge_sv_calls) {
             // requires whole genome
             results_cnv = spectre_cnv_subworkflow(
                 params.spectre_mosdepth,
-                params.spectre_bin_size,
                 ch_spectre_reference,
                 params.spectre_snv_vcf,
-                params.spectre_metadata
-                // params.spectre_blacklist
+                params.spectre_metadata,
+                params.spectre_blacklist
             )
 
             // Run round_dp_spectre if requested
-            // round_dp_spectre_subworkflow(spectre_cnv_subworkflow.out.vcf) - not working yet
+            // round_dp_spectre_subworkflow(spectre_cnv_subworkflow.out.vcf)
         }
-    } else {
+        } 
+        
+        else {
         results_cnv = Channel.empty()
-    }
+        }
 
 // Run STR calling with STRaglr
     if (params.str) {

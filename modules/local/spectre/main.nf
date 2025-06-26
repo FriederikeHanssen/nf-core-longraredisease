@@ -3,25 +3,23 @@ process SPECTRE {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/pip_ont-spectre:e37b5cd7d9231bc9' :
-        'community.wave.seqera.io/library/pip_ont-spectre:b4773971f0688241' }"
+    container "wave.seqera.io/wt/7fb80fdd9784/wave/build:d9a1390fc3153e0e"
 
     input:
-    path(mosdepth_dir)
-    val(bin_size)
+    path(mosdepth_cov)
     tuple val(meta), path(reference)
     path(snv_vcf)
     path(metadata_file)
-    // path(blacklist)
+    path(blacklist)
 
     
     output:
-    tuple val(meta), path("*.vcf")           , emit: vcf
-    tuple val(meta), path("*.bed")           , emit: bed
+    tuple val(meta), path("*.vcf.gz")        , emit: vcf
+    tuple val(meta), path("*.vcf.gz.tbi")    , emit: index
+    tuple val(meta), path("*.bed.gz")        , emit: bed
+    tuple val(meta), path("*.bed.gz.tbi")    , emit: bed_index
     tuple val(meta), path("*.spc.gz")        , emit: spc
-    tuple val(meta), path("*karyotype.txt")  , emit: karyo
-    tuple val(meta), path("windows_stats")   , emit: winstats
+    // tuple val(meta), path("windows_stats")   , emit: winstats
     path "versions.yml"                      , emit: versions
 
     when:
@@ -33,13 +31,13 @@ process SPECTRE {
     
     """
     spectre CNVCaller \\
-        --coverage ${mosdepth_dir} \\
-        --bin-size ${bin_size} \\
-        --sample-id ${meta.id} \\
+        --coverage ${mosdepth_cov} \\
+        --sample-id ${prefix} \\
         --output-dir . \\
         --reference ${reference} \\
         --snv ${snv_vcf} \\
         --metadata ${metadata_file} \\
+        --blacklist ${blacklist} \\
         ${args}
 
     cat <<-END_VERSIONS > versions.yml

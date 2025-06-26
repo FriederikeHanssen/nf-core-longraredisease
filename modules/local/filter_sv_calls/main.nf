@@ -2,9 +2,7 @@ process FILTER_SV_CALLS {
     tag "$meta.id"
     label 'process_medium'
     
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bcftools_pip_confargparse:a6c7f8404f2ee186' :
-        'community.wave.seqera.io/library/bcftools_pip_confargparse:4f3c18aa8341a070' }"
+    container "community.wave.seqera.io/library/bcftools_pip_confargparse:4f3c18aa8341a070"
     
     input:
     tuple val(meta), path(vcf)
