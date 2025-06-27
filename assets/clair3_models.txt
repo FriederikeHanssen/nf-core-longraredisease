@@ -1,0 +1,12 @@
+| Model Name                        | Platform / Application              | Description/Use-case                                       | Notes                      |
+| --------------------------------- | ----------------------------------- | ---------------------------------------------------------- | -------------------------- |
+| **hifi**                          | PacBio HiFi                         | Standard PacBio HiFi model                                 | General HiFi               |
+| **hifi\_revio**                   | PacBio HiFi Revio                   | PacBio Revio-specific HiFi model                           | For Revio platform         |
+| **hifi\_sequel2**                 | PacBio HiFi Sequel II               | HiFi model for Sequel II                                   | For Sequel II platform     |
+| **ilmn**                          | Illumina                            | Illumina short-read model                                  | Rarely used (experimental) |
+| **ont**                           | Oxford Nanopore (ONT)               | Legacy ONT model (pre-R9.4.1 or for older basecallers)     | Legacy                     |
+| **ont\_guppy5**                   | ONT (Guppy 5)                       | ONT model for reads basecalled with Guppy 5                | Newer ONT                  |
+| **r1041\_e82\_400bps\_sup\_v410** | ONT R10.4.1, E8.2, 400bps, SUP v4.1 | ONT R10.4.1, E8.2 flow cell, 400bps, super-accuracy v4.1   | For latest ONT chemistry   |
+| **r1041\_e82\_400bps\_sup\_v500** | ONT R10.4.1, E8.2, 400bps, SUP v5.0 | ONT R10.4.1, E8.2, 400bps, super-accuracy v5.0             | For latest ONT chemistry   |
+| **r941\_prom\_hac\_g360+g422**    | ONT R9.4.1, PromethION, HAC         | ONT R9.4.1, PromethION, high accuracy (HAC), merged models | HAC basecalling            |
+| **r941\_prom\_sup\_g5014**        | ONT R9.4.1, PromethION, SUP         | ONT R9.4.1, PromethION, super-accuracy basecalling         | Most common for ONT SUP    |

@@ -3,12 +3,15 @@
 
 import gzip
 import os
+import argparse
 
-from .util import get_named_logger, wf_parser  # noqa: ABS101
+# Assuming these are available in your environment
+# from .util import get_named_logger, wf_parser  # noqa: ABS101
 
-
-# Get logger
-logger = get_named_logger("report_sv")
+# Simple logger for standalone use
+import logging
+logger = logging.getLogger("unify_vcf")
+logging.basicConfig(level=logging.INFO)
 
 
 def get_lines(file_path):
@@ -35,13 +38,14 @@ def modify_repeat_line(repeat_line):
     ONT repeat files already contain SVTYPE=STR in their INFO section, which is
     also recognized by Geneyx as REP effect
     """
-    (chrom, pos, vid, ref, alt, qual, vfilter, info, vformat, _) = (
-        repeat_line.split("\t")
-    )
-    info = info + ";SVTYPE=REP"
-    repeat_line = "\t".join(
-        (chrom, pos, vid, ref, alt, qual, vfilter, info, vformat, _)
-    )
+    line_parts = repeat_line.strip().split("\t")
+    if len(line_parts) >= 8:
+        chrom, pos, vid, ref, alt, qual, vfilter, info = line_parts[:8]
+        remaining = line_parts[8:] if len(line_parts) > 8 else []
+        
+        info = info + ";SVTYPE=REP"
+        repeat_line = "\t".join([chrom, pos, vid, ref, alt, qual, vfilter, info] + remaining) + "\n"
+    
     return repeat_line
 
 
@@ -54,24 +58,31 @@ def is_valid_line(line):
     a line is valid if it contains SVTYPE= and it had a valid genotype
     """
     # check if line is header or null / empty
-    if line.startswith("#") or not line:
+    if line.startswith("#") or not line.strip():
         return True
 
     cells = line.split("\t")
+    if len(cells) < 10:
+        return True  # Skip malformed lines
+        
     info_cell = cells[7]
     format_key = cells[8]
     format_value = cells[9]
 
-    # if the "svtype" line is exists the line valid
+    # if the "svtype" line exists the line is valid
     if "SVTYPE=" in info_cell:
         return True
 
-    gt_index = format_key.split(":").index("GT")
-    gt_value = format_value.split(":")[gt_index]
+    try:
+        gt_index = format_key.split(":").index("GT")
+        gt_value = format_value.split(":")[gt_index]
 
-    # if "svtype" not present and GT is 0 or "./." the line is invalid
-    if gt_index == "0" or gt_value == "./.":
-        return False
+        # if "svtype" not present and GT is 0 or "./." the line is invalid
+        if gt_value == "0/0" or gt_value == "./.":
+            return False
+    except (ValueError, IndexError):
+        # If GT field is not found or malformed, consider line valid
+        pass
 
     return True
 
@@ -83,17 +94,28 @@ def write_vcf_content(ftype, lines_dict, output_h, skip_svtype):
     Writes the content of a file into the output file skips the header
     of the file modifies lines when necessary
     """
-    start_read_content_flag = False
-    for vcf_line in lines_dict[ftype]:
-        if start_read_content_flag:
-            if ftype == "repeat" and not skip_svtype:
-                vcf_line = modify_repeat_line(vcf_line)
-            output_h.write(vcf_line)
-        if vcf_line.startswith("#CHROM"):
-            start_read_content_flag = True
+    # Handle multiple files for the same type (e.g., multiple SV files)
+    if isinstance(lines_dict[ftype], list):
+        files_to_process = lines_dict[ftype]
+    else:
+        files_to_process = [lines_dict[ftype]] if lines_dict[ftype] is not None else []
+    
+    for file_lines in files_to_process:
+        if file_lines is None:
+            continue
+            
+        start_read_content_flag = False
+        for vcf_line in file_lines:
+            if start_read_content_flag:
+                if is_valid_line(vcf_line):
+                    if ftype == "repeat" and not skip_svtype:
+                        vcf_line = modify_repeat_line(vcf_line)
+                    output_h.write(vcf_line)
+            if vcf_line.startswith("#CHROM"):
+                start_read_content_flag = True
 
-    if not start_read_content_flag:
-        logger.warning(f"No vcf header for given {ftype} file")
+        if not start_read_content_flag:
+            logger.warning(f"No vcf header for given {ftype} file")
 
 
 def get_vcf_header_from_lines(vcf_lines):
@@ -123,21 +145,33 @@ def combine_headers(files_lines):
     h_lines = []
     printed_format = False
 
-    # Process each file header
+    # Process each file type
     for key in ['sv', 'cnv', 'repeat']:
-        lines = files_lines[key]
-        if lines:
-            for line in lines:
-                if line.startswith('##') and line not in h_lines:
-                    if line.startswith('##fileformat') and not printed_format:
-                        h_lines.append(line)
-                        printed_format = True
-                        continue
-                    elif not line.startswith('##fileformat'):
-                        h_lines.append(line)
-                elif line.startswith('#CHROM') and not c_line:
-                    c_line = line
-    h_lines.append(c_line)
+        files_for_type = files_lines[key]
+        if files_for_type is None:
+            continue
+            
+        # Handle multiple files for the same type
+        if isinstance(files_for_type, list):
+            files_to_process = files_for_type
+        else:
+            files_to_process = [files_for_type]
+            
+        for lines in files_to_process:
+            if lines:
+                for line in lines:
+                    if line.startswith('##') and line not in h_lines:
+                        if line.startswith('##fileformat') and not printed_format:
+                            h_lines.append(line)
+                            printed_format = True
+                            continue
+                        elif not line.startswith('##fileformat'):
+                            h_lines.append(line)
+                    elif line.startswith('#CHROM') and not c_line:
+                        c_line = line
+    
+    if c_line:
+        h_lines.append(c_line)
     return h_lines
 
 
@@ -152,96 +186,41 @@ def create_unified_file(files_lines, output_path, skip_svtype):
     header
     """
     # We need to combine the headers first, to avoid issues downstream when
-    # sorting/indexing woth bcftools and keep the output compliant.
+    # sorting/indexing with bcftools and keep the output compliant.
     header = combine_headers(files_lines)
 
     # Then, combine the body of the files
-    with open(output_path, "w+") as output_h:
+    with open(output_path, "w") as output_h:
         # Save the combined header first
-        output_h.write("".join(header))
+        if header:
+            output_h.write("".join(header))
 
-        # prints into the output file all the sv file
-        if files_lines["sv"] is not None:
-            write_vcf_content("sv", files_lines, output_h, skip_svtype)
-
-        # adds the CNV lines (without the header)
-        if files_lines["cnv"] is not None:
-            write_vcf_content("cnv", files_lines, output_h, skip_svtype)
-
-        # Then add the repeat file
-        if files_lines["repeat"] is not None:
-            write_vcf_content("repeat", files_lines, output_h, skip_svtype)
-
-        output_h.flush()
-        output_h.close()
+        # Process files in order: sv, cnv, repeat
+        for ftype in ['sv', 'cnv', 'repeat']:
+            if files_lines[ftype] is not None:
+                write_vcf_content(ftype, files_lines, output_h, skip_svtype)
 
 
-# creates a dictionary with the different vcf files per type and
-# calls the unifying function
-def main(args):
+def main():
     """Run the entry point."""
-    # Define input variables.
-    output_path = args.outputPath
-    sv_path = args.svPath
-    cnv_path = args.cnvPath
-    repeat_path = args.repeatPath
-    skip_svtype = True
-    output_file_path = output_path
-
-    # Check that there is at least one input
-    if not sv_path and not cnv_path and not repeat_path:
-        logger.warning("Empty/no vcf files to concatenate")
-        return
-
-    struct_files = {
-        "sv": sv_path,
-        "cnv": cnv_path,
-        "repeat": repeat_path
-    }
-    struct_lines = {}
-
-    for file_type in struct_files.keys():
-        struct_lines[file_type] = None
-
-        if struct_files[file_type] is None:
-            logger.warning(
-                f'File type "{file_type}" not provided.'
-            )
-            continue
-
-        # This is not in the original UnifyVcf script, but better check if
-        # the file is there.
-        if not os.path.isfile(struct_files[file_type]):
-            logger.warning(
-                f'File "{struct_files[file_type]}" does not exists.'
-            )
-            continue
-
-        lines = get_lines(struct_files[file_type])
-        if is_empty(lines):
-            logger.warning(
-                f'Can\'t unify file type "{file_type}". '
-                "The file is empty."
-            )
-            continue
-
-        struct_lines[file_type] = lines
-
-    create_unified_file(struct_lines, output_file_path, skip_svtype)
-
-
-def argparser():
-    """Create argument parser."""
-    parser = wf_parser("UnifyVcf")
+    parser = argparse.ArgumentParser(description="Unify VCF files")
     parser.add_argument(
         '-o', '--outputPath',
         help='the unified output VCF path (required)',
         required=True
     )
     parser.add_argument(
-        '-s', '--svPath',
-        help='SV input file path (optional)',
-        required=False, default=None
+        '-s', '--svPaths',
+        help='SV input file paths (optional, can specify multiple)',
+        required=False, 
+        nargs='*',
+        default=[]
+    )
+    parser.add_argument(
+        '--svPath',
+        help='Single SV input file path (optional, for backward compatibility)',
+        required=False, 
+        default=None
     )
     parser.add_argument(
         '-c', '--cnvPath',
@@ -253,4 +232,70 @@ def argparser():
         help='repeats input file path (optional)',
         required=False, default=None
     )
-    return parser
+    
+    args = parser.parse_args()
+    
+    # Define input variables.
+    output_path = args.outputPath
+    sv_paths = args.svPaths if args.svPaths else ([args.svPath] if args.svPath else [])
+    cnv_path = args.cnvPath
+    repeat_path = args.repeatPath
+    skip_svtype = True
+
+    # Check that there is at least one input
+    if not sv_paths and not cnv_path and not repeat_path:
+        logger.warning("Empty/no vcf files to concatenate")
+        return
+
+    struct_lines = {
+        "sv": [],
+        "cnv": None,
+        "repeat": None
+    }
+
+    # Process multiple SV files
+    if sv_paths:
+        for sv_path in sv_paths:
+            if sv_path and sv_path != "OPTIONAL_FILE":
+                if not os.path.isfile(sv_path):
+                    logger.warning(f'SV file "{sv_path}" does not exist.')
+                    continue
+                
+                lines = get_lines(sv_path)
+                if is_empty(lines):
+                    logger.warning(f'SV file "{sv_path}" is empty.')
+                    continue
+                
+                struct_lines["sv"].append(lines)
+    
+    # If no valid SV files, set to None
+    if not struct_lines["sv"]:
+        struct_lines["sv"] = None
+
+    # Process CNV file
+    if cnv_path and cnv_path != "OPTIONAL_FILE":
+        if not os.path.isfile(cnv_path):
+            logger.warning(f'CNV file "{cnv_path}" does not exist.')
+        else:
+            lines = get_lines(cnv_path)
+            if is_empty(lines):
+                logger.warning('CNV file is empty.')
+            else:
+                struct_lines["cnv"] = lines
+
+    # Process repeat file
+    if repeat_path and repeat_path != "OPTIONAL_FILE":
+        if not os.path.isfile(repeat_path):
+            logger.warning(f'Repeat file "{repeat_path}" does not exist.')
+        else:
+            lines = get_lines(repeat_path)
+            if is_empty(lines):
+                logger.warning('Repeat file is empty.')
+            else:
+                struct_lines["repeat"] = lines
+
+    create_unified_file(struct_lines, output_path, skip_svtype)
+
+
+if __name__ == "__main__":
+    main()

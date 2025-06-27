@@ -1,0 +1,9 @@
+    wget \\
+        $args \\
+        -O tandem_repeats.bed \\
+        https://raw.githubusercontent.com/fritzsedlazeck/Sniffles/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+
+    wget \\
+        $args \\
+        -O wf_str_repeat.bed \\
+        https://raw.githubusercontent.com/epi2me-labs/wf-human-variation/master/data/wf_str_repeats.bed

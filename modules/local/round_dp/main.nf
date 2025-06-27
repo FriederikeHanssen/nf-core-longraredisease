@@ -2,7 +2,7 @@ process ROUND_DP {
     tag "$meta.id"
     label 'process_single'
 
-    conda "conda-forge::python=3.9"
+    conda "${moduleDir}/environment.yml"
     container "biocontainers/python:3.9--1"
 
     input:
