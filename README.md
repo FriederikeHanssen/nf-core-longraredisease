@@ -43,12 +43,9 @@
 **Software:**  
 - Nextflow (≥22.10.0)  
 - Docker or Singularity/Apptainer  
-- Java 11 or later  
 
 **Hardware:**  
-- Minimum: 8 GB RAM, 4 CPUs  
-- Recommended: 32 GB RAM, 16 CPUs  
-- Storage: 50 GB free (test data); more for full datasets  
+Will be updated later in the project 
 
 ---
 
@@ -76,9 +73,10 @@ nextflow run main.nf     --bam_dir /path/to/bam/files     --fasta_file /path/to/
 | --bam_dir        | Directory containing BAM files | Directory path | ✅       |
 | --fasta_file     | Reference genome FASTA         | .fasta/.fa     | ✅       |
 | --outdir         | Output directory               | Directory path | ✅       |
+| --str_bed_file   | STR regions for analysis       | .bed           | ✅       |
 | --bed_file       | Target regions BED file        | .bed           | Optional |
 | --chrom_sizes    | Chromosome sizes file          | .txt           | Optional |
-| --str_bed_file   | STR regions for analysis       | .bed           | Optional |
+
 
 ---
 
@@ -171,7 +169,7 @@ results/
 - test: Minimal test dataset  
 - docker: Use Docker containers  
 - singularity: Use Singularity containers  
-- conda: Use Conda environments  
+
 
 **Custom Configuration**
 ```bash
