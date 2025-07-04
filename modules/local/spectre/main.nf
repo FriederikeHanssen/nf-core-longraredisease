@@ -14,8 +14,8 @@ process SPECTRE {
 
     
     output:
-    tuple val(meta), path("*_spectre.vcf.gz")        , emit: vcf
-    tuple val(meta), path("*_spectre.vcf.gz.tbi")    , emit: index
+    tuple val(meta), path("*.vcf.gz")        , emit: vcf
+    tuple val(meta), path("*.vcf.gz.tbi")    , emit: index
     tuple val(meta), path("*.bed.gz")        , emit: bed
     tuple val(meta), path("*.bed.gz.tbi")    , emit: bed_index
     tuple val(meta), path("*.spc.gz")        , emit: spc
@@ -32,7 +32,7 @@ process SPECTRE {
     """
     spectre CNVCaller \\
         --coverage ${mosdepth_cov} \\
-        --sample-id ${prefix} \\
+        --sample-id ${meta.id} \\
         --output-dir . \\
         --reference ${reference} \\
         --snv ${snv_vcf} \\

@@ -24,17 +24,7 @@ process UNIFY_VCFS {
     prefix = task.ext.prefix ?: "${meta.id}"
     
     // Build the command arguments for multiple SV files
-    def sv_args = ""
-    if (sv_vcfs instanceof List && sv_vcfs.size() > 0) {
-        // Multiple SV files
-        sv_args = sv_vcfs.findAll { it.name != 'OPTIONAL_FILE' }
-                         .collect { "--svPaths $it" }
-                         .join(' ')
-    } else if (sv_vcfs && sv_vcfs.name != 'OPTIONAL_FILE') {
-        // Single SV file
-        sv_args = "--svPaths $sv_vcfs"
-    }
-    
+    def sv_args = (sv_vcfs && sv_vcfs.name != 'OPTIONAL_FILE') ? "-s $sv_vcfs" : ''
     def cnv_arg = (cnv_vcf && cnv_vcf.name != 'OPTIONAL_FILE') ? "--cnvPath $cnv_vcf" : ''
     def repeat_arg = (repeat_vcf && repeat_vcf.name != 'OPTIONAL_FILE') ? "--repeatPath $repeat_vcf" : ''
     

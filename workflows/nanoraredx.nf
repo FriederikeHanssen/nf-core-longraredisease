@@ -579,7 +579,7 @@ workflow nanoraredx {
         
         // Prepare CNV VCFs if CNV analysis is enabled
         ch_cnv_for_unify = params.cnv ? 
-            results_cnv.vcf.map { meta, vcf ->
+            round_dp_spectre_subworkflow.out.vcf.map { meta, vcf ->
                 def sample_id = meta.id.split('_')[0]
                 [[id: sample_id], vcf]
             } :

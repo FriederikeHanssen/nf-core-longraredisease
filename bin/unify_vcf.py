@@ -89,33 +89,39 @@ def is_valid_line(line):
 
 def write_vcf_content(ftype, lines_dict, output_h, skip_svtype):
     """
-    Write VCF.
-
-    Writes the content of a file into the output file skips the header
-    of the file modifies lines when necessary
+    Write VCF content to output file, skipping headers.
     """
-    # Handle multiple files for the same type (e.g., multiple SV files)
-    if isinstance(lines_dict[ftype], list):
-        files_to_process = lines_dict[ftype]
-    else:
-        files_to_process = [lines_dict[ftype]] if lines_dict[ftype] is not None else []
+    if ftype == "sv":
+        # SV files: lines_dict["sv"] is a list of file_lines
+        if lines_dict[ftype] is None:
+            return
+        
+        for file_lines in lines_dict[ftype]:
+            write_single_file_content(file_lines, ftype, output_h, skip_svtype)
     
-    for file_lines in files_to_process:
-        if file_lines is None:
-            continue
-            
-        start_read_content_flag = False
-        for vcf_line in file_lines:
-            if start_read_content_flag:
-                if is_valid_line(vcf_line):
-                    if ftype == "repeat" and not skip_svtype:
-                        vcf_line = modify_repeat_line(vcf_line)
-                    output_h.write(vcf_line)
-            if vcf_line.startswith("#CHROM"):
-                start_read_content_flag = True
+    else:
+        # CNV/repeat files: lines_dict[ftype] is directly the file_lines
+        if lines_dict[ftype] is None:
+            return
+        
+        write_single_file_content(lines_dict[ftype], ftype, output_h, skip_svtype)
 
-        if not start_read_content_flag:
-            logger.warning(f"No vcf header for given {ftype} file")
+
+def write_single_file_content(file_lines, ftype, output_h, skip_svtype):
+    """Write content from a single file."""
+    start_read_content_flag = False
+    
+    for vcf_line in file_lines:
+        if start_read_content_flag:
+            if is_valid_line(vcf_line):
+                if ftype == "repeat" and not skip_svtype:
+                    vcf_line = modify_repeat_line(vcf_line)
+                output_h.write(vcf_line)
+        elif vcf_line.startswith("#CHROM"):
+            start_read_content_flag = True
+
+    if not start_read_content_flag:
+        logger.warning(f"No vcf header found for {ftype} file")
 
 
 def get_vcf_header_from_lines(vcf_lines):
@@ -200,7 +206,6 @@ def create_unified_file(files_lines, output_path, skip_svtype):
             if files_lines[ftype] is not None:
                 write_vcf_content(ftype, files_lines, output_h, skip_svtype)
 
-
 def main():
     """Run the entry point."""
     parser = argparse.ArgumentParser(description="Unify VCF files")
@@ -232,8 +237,17 @@ def main():
         help='repeats input file path (optional)',
         required=False, default=None
     )
+    parser.add_argument(
+        '--debug',
+        help='Enable debug output',
+        action='store_true'
+    )
     
     args = parser.parse_args()
+    
+    # Enable debug logging if requested
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
     
     # Define input variables.
     output_path = args.outputPath
@@ -241,6 +255,10 @@ def main():
     cnv_path = args.cnvPath
     repeat_path = args.repeatPath
     skip_svtype = True
+
+    logger.info(f"SV paths: {sv_paths}")
+    logger.info(f"CNV path: {cnv_path}")
+    logger.info(f"Repeat path: {repeat_path}")
 
     # Check that there is at least one input
     if not sv_paths and not cnv_path and not repeat_path:
@@ -257,44 +275,83 @@ def main():
     if sv_paths:
         for sv_path in sv_paths:
             if sv_path and sv_path != "OPTIONAL_FILE":
+                logger.info(f"Processing SV file: {sv_path}")
+                
                 if not os.path.isfile(sv_path):
                     logger.warning(f'SV file "{sv_path}" does not exist.')
                     continue
                 
-                lines = get_lines(sv_path)
-                if is_empty(lines):
-                    logger.warning(f'SV file "{sv_path}" is empty.')
+                try:
+                    lines = get_lines(sv_path)
+                    logger.info(f"Read {len(lines)} lines from {sv_path}")
+                    
+                    if is_empty(lines):
+                        logger.warning(f'SV file "{sv_path}" is empty.')
+                        continue
+                    
+                    # Count valid variants
+                    variant_count = sum(1 for line in lines if not line.startswith("#") and line.strip())
+                    valid_count = sum(1 for line in lines if is_valid_line(line) and not line.startswith("#") and line.strip())
+                    logger.info(f"File {sv_path}: {variant_count} total variants, {valid_count} valid variants")
+                    
+                    struct_lines["sv"].append(lines)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing SV file {sv_path}: {e}")
                     continue
-                
-                struct_lines["sv"].append(lines)
     
     # If no valid SV files, set to None
     if not struct_lines["sv"]:
         struct_lines["sv"] = None
+        logger.warning("No valid SV files found")
 
     # Process CNV file
     if cnv_path and cnv_path != "OPTIONAL_FILE":
+        logger.info(f"Processing CNV file: {cnv_path}")
+        
         if not os.path.isfile(cnv_path):
             logger.warning(f'CNV file "{cnv_path}" does not exist.')
         else:
-            lines = get_lines(cnv_path)
-            if is_empty(lines):
-                logger.warning('CNV file is empty.')
-            else:
-                struct_lines["cnv"] = lines
+            try:
+                lines = get_lines(cnv_path)
+                logger.info(f"Read {len(lines)} lines from CNV file")
+                
+                if is_empty(lines):
+                    logger.warning('CNV file is empty.')
+                else:
+                    variant_count = sum(1 for line in lines if not line.startswith("#") and line.strip())
+                    valid_count = sum(1 for line in lines if is_valid_line(line) and not line.startswith("#") and line.strip())
+                    logger.info(f"CNV file: {variant_count} total variants, {valid_count} valid variants")
+                    struct_lines["cnv"] = lines
+                    
+            except Exception as e:
+                logger.error(f"Error processing CNV file: {e}")
 
     # Process repeat file
     if repeat_path and repeat_path != "OPTIONAL_FILE":
+        logger.info(f"Processing repeat file: {repeat_path}")
+        
         if not os.path.isfile(repeat_path):
             logger.warning(f'Repeat file "{repeat_path}" does not exist.')
         else:
-            lines = get_lines(repeat_path)
-            if is_empty(lines):
-                logger.warning('Repeat file is empty.')
-            else:
-                struct_lines["repeat"] = lines
+            try:
+                lines = get_lines(repeat_path)
+                logger.info(f"Read {len(lines)} lines from repeat file")
+                
+                if is_empty(lines):
+                    logger.warning('Repeat file is empty.')
+                else:
+                    variant_count = sum(1 for line in lines if not line.startswith("#") and line.strip())
+                    valid_count = sum(1 for line in lines if is_valid_line(line) and not line.startswith("#") and line.strip())
+                    logger.info(f"Repeat file: {variant_count} total variants, {valid_count} valid variants")
+                    struct_lines["repeat"] = lines
+                    
+            except Exception as e:
+                logger.error(f"Error processing repeat file: {e}")
 
+    logger.info("Creating unified file...")
     create_unified_file(struct_lines, output_path, skip_svtype)
+    logger.info(f"Unified file created: {output_path}")
 
 
 if __name__ == "__main__":

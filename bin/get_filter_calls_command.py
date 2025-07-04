@@ -169,7 +169,7 @@ def main():
 
     # Print command to stdout
     command = (
-        "bcftools view --threads "
+        "bcftools view -f PASS --threads "
         f"{args.bcftools_threads} {filter_string} {args.vcf}"
     )
     sys.stdout.write(command)
