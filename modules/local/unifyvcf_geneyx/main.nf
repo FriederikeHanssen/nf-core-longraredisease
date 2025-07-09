@@ -1,19 +1,19 @@
-process UNIFY_VCFS {
+process UNIFYVCF {
     tag "$meta.id"
     label 'process_low'
     
-    conda "conda-forge::python=3.9"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/python:3.9--1' :
-        'biocontainers/python:3.9--1' }"
+    conda "${moduleDir}/environment.yml"
+    container "wave.seqera.io/wt/211639257add/wave/build:python-3.9_htslib--9c2949194826ffc2"
 
     input:
-    tuple val(meta), path(sv_vcfs)      // Multiple SV VCF files as a list
-    tuple val(meta2), path(cnv_vcf)     // Single CNV VCF file (optional)
-    tuple val(meta3), path(repeat_vcf)  // Single repeat VCF file (optional)
+    tuple val(meta), path(sv_vcf)       // Single SV VCF file
+    tuple val(meta1), path(cnv_vcf)     // Single CNV VCF file
+    tuple val(meta2), path(repeat_vcf)  // Single STR VCF file
+    val(modify_repeats)                 // Boolean: whether to modify repeat calls
 
     output:
-    tuple val(meta), path("${prefix}_unified.vcf"), emit: unified_vcf
+    tuple val(meta), path("${prefix}_unified.vcf.gz"), emit: unified_vcf
+    tuple val(meta), path("${prefix}_unified.vcf.gz.tbi"), emit: unified_tbi
     path "versions.yml", emit: versions
 
     when:
@@ -23,18 +23,22 @@ process UNIFY_VCFS {
     def args = task.ext.args ?: ''
     prefix = task.ext.prefix ?: "${meta.id}"
     
-    // Build the command arguments for multiple SV files
-    def sv_args = (sv_vcfs && sv_vcfs.name != 'OPTIONAL_FILE') ? "-s $sv_vcfs" : ''
-    def cnv_arg = (cnv_vcf && cnv_vcf.name != 'OPTIONAL_FILE') ? "--cnvPath $cnv_vcf" : ''
-    def repeat_arg = (repeat_vcf && repeat_vcf.name != 'OPTIONAL_FILE') ? "--repeatPath $repeat_vcf" : ''
+    // Handle optional VCF inputs - check if files exist and are not empty
+    def sv_arg = sv_vcf  ? "-s ${sv_vcf}" : ''
+    def cnv_arg = cnv_vcf ? "-c ${cnv_vcf}" : ''
+    def repeat_arg = repeat_vcf ? "-r ${repeat_vcf}" : ''
+    def modify_repeats_arg = modify_repeats ? '-modify' : ''
     
     """
-    unify_vcf.py \\
-        --outputPath ${prefix}_unified.vcf \\
-        $sv_args \\
-        $cnv_arg \\
-        $repeat_arg \\
-        $args
+    ONTUnifyVcf.py \\
+        -o ${prefix}_unified.vcf \\
+        ${sv_arg} \\
+        ${cnv_arg} \\
+        ${repeat_arg} \\
+        ${modify_repeats_arg} \\
+        ${args}
+
+    tabix ${prefix}_unified.vcf.gz
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

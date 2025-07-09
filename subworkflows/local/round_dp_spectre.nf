@@ -11,5 +11,6 @@ workflow round_dp_spectre_subworkflow {
 
     emit:
     vcf = ROUND_DP.out.vcf
+    tbi = ROUND_DP.out.tbi
     versions = ROUND_DP.out.versions
 }

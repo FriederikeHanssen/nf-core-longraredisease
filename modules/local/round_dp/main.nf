@@ -3,13 +3,14 @@ process ROUND_DP {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "biocontainers/python:3.9--1"
+    container "wave.seqera.io/wt/211639257add/wave/build:python-3.9_htslib--9c2949194826ffc2"
 
     input:
     tuple val(meta), path(vcf)
 
     output:
-    tuple val(meta), path("*.vcf"), emit: vcf
+    tuple val(meta), path("*.vcf.gz"), emit: vcf
+    tuple val(meta), path("*.vcf.gz.tbi"), emit: tbi
     path "versions.yml"           , emit: versions
 
     when:
@@ -25,6 +26,9 @@ process ROUND_DP {
     else
         roundDP.py < ${vcf} > ${prefix}.vcf
     fi
+
+    bgzip -c ${prefix}.vcf > ${prefix}.vcf.gz
+    tabix -p vcf ${prefix}.vcf.gz
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
