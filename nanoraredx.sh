@@ -4,7 +4,6 @@
 #SBATCH --time=1-0:0:0
 #SBATCH --account=beggsa-genomicsbirmingham
 #SBATCH --qos=bbdefault
-#SBATCH --partition=standard  # (add this if your cluster requires explicit partition)
 
 module purge
 module load bluebear
