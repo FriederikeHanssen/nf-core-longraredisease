@@ -511,23 +511,41 @@ workflow nanoraredx {
         } else {
             // CNV calling with Spectre (requires whole genome data)
             ch_spectre_reference = Channel
-                .fromPath(params.spectre_snv_vcf, checkIfExists: true)
+                .fromPath(clair3_snv_subworkflow.out.vcf, checkIfExists: true)
                 .map { vcf_file -> 
                     def sample_id = vcf_file.baseName.split('_')[0]
                     return [id: sample_id]
                 }
-                .combine(Channel.fromPath(params.spectre_fasta_file, checkIfExists: true))
+                .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))
                 .map { meta, fasta -> tuple(meta, fasta) }
             
             results_spectre = spectre_cnv_subworkflow(
-                params.spectre_mosdepth,
+                mosdepth_subworkflow.out.regions_bed,
                 ch_spectre_reference,
-                params.spectre_snv_vcf,
+                clair3_snv_subworkflow.out.vcf,
                 params.spectre_metadata,
                 params.spectre_blacklist
             )
 
-            // Optional: Round decimal places in Spectre output
+            // Test CNV calling with Spectre (requires whole genome data; can not be tested on subset of data; hence, different parameters)
+            // ch_spectre_reference = Channel
+            //     .fromPath(params.spectre_snv_vcf, checkIfExists: true)
+            //     .map { vcf_file -> 
+            //         def sample_id = vcf_file.baseName.split('_')[0]
+            //         return [id: sample_id]
+            //     }
+            //     .combine(Channel.fromPath(params.spectre_fasta_file, checkIfExists: true))
+            //     .map { meta, fasta -> tuple(meta, fasta) }
+            
+            // results_spectre = spectre_cnv_subworkflow(
+            //     params.spectre_mosdepth,
+            //     ch_spectre_reference,
+            //     params.spectre_snv_vcf,
+            //     params.spectre_metadata,
+            //     params.spectre_blacklist
+            // )
+
+            // Round decimal places in Spectre output
             results_cnv = round_dp_spectre_subworkflow(results_spectre.vcf)
         }
         
