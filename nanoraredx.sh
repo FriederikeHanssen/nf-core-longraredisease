@@ -1,11 +1,13 @@
 #!/bin/bash
+#SBATCH --job-name=nanoraredx_test
 #SBATCH --cpus-per-task=32
-#SBATCH --time 4-0:0:0
-#SBATCH --account beggsa-genomicsbirmingham
-#SBATCH --qos bbshort
-#SBATCH --time 10
+#SBATCH --time=1-0:0:0
+#SBATCH --account=beggsa-genomicsbirmingham
+#SBATCH --qos=bbdefault
+#SBATCH --partition=standard  # (add this if your cluster requires explicit partition)
 
-module purge; module load bluebear
+module purge
+module load bluebear
 module load bear-apps/2022b
 module load Nextflow/24.04.2
 
