@@ -3,7 +3,7 @@ process UNIFYVCF {
     label 'process_low'
     
     conda "${moduleDir}/environment.yml"
-    container "wave.seqera.io/wt/211639257add/wave/build:python-3.9_htslib--9c2949194826ffc2"
+    container "community.wave.seqera.io/library/htslib_procs_python:4c242671a1021f9c"
 
     input:
     tuple val(meta), path(sv_vcf)       // Single SV VCF file

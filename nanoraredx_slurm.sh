@@ -10,4 +10,4 @@ module load bluebear
 module load bear-apps/2022b
 module load Nextflow/24.04.2
 
-nextflow run main.nf -profile test,singularity
+nextflow run main.nf -profile test,singularity -resume

@@ -7,6 +7,13 @@
 | **ont**                           | Oxford Nanopore (ONT)               | Legacy ONT model (pre-R9.4.1 or for older basecallers)     | Legacy                     |
 | **ont\_guppy5**                   | ONT (Guppy 5)                       | ONT model for reads basecalled with Guppy 5                | Newer ONT                  |
 | **r1041\_e82\_400bps\_sup\_v410** | ONT R10.4.1, E8.2, 400bps, SUP v4.1 | ONT R10.4.1, E8.2 flow cell, 400bps, super-accuracy v4.1   | For latest ONT chemistry   |
-| **r1041\_e82\_400bps\_sup\_v500** | ONT R10.4.1, E8.2, 400bps, SUP v5.0 | ONT R10.4.1, E8.2, 400bps, super-accuracy v5.0             | For latest ONT chemistry   |
+Not present in singularity| **r1041\_e82\_400bps\_sup\_v500** | ONT R10.4.1, E8.2, 400bps, SUP v5.0 | ONT R10.4.1, E8.2, 400bps, super-accuracy v5.0             | For latest ONT chemistry   |
 | **r941\_prom\_hac\_g360+g422**    | ONT R9.4.1, PromethION, HAC         | ONT R9.4.1, PromethION, high accuracy (HAC), merged models | HAC basecalling            |
 | **r941\_prom\_sup\_g5014**        | ONT R9.4.1, PromethION, SUP         | ONT R9.4.1, PromethION, super-accuracy basecalling         | Most common for ONT SUP    |
+
+Models can be found in the container by using the following commands:
+
+docker pull quay.io/biocontainers/clair3:1.1.1--py310h779eee5_0
+docker run -it --rm quay.io/biocontainers/clair3:1.1.1--py310h779eee5_0 /bin/bash
+cd /usr/local/bin/models/
+ls

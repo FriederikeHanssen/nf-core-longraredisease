@@ -13,7 +13,7 @@ process FILTERBYCOV_SV {
     val min_read_support_limit
     
     output:
-    tuple val(meta), path("*filterbycov.vcf"), emit: filterbycov_vcf  // ✅ Fixed - no dot
+    tuple val(meta), path("*filterbycov.vcf"), emit: filterbycov_vcf // Not sure if this is correct, but otherwise had issues with file being named the same as input
     path "versions.yml", emit: versions
     
     when:

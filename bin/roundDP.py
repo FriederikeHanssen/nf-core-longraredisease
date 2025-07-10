@@ -11,7 +11,7 @@ def round_depth_to_integer(input_lines):
             parts = line.strip().split('\t')
             format_col = parts[8].split(':')
 
-            # Look for DP or CD in the FORMAT column
+            # Look for DP or CD in the FORMAT column. Otherwise gave me an error
             if 'DP' in format_col:
                 depth_field = 'DP'
             elif 'CD' in format_col:
@@ -26,7 +26,7 @@ def round_depth_to_integer(input_lines):
             sample_values = parts[9].split(':')
             depth_values = sample_values[depth_index].split(',')
 
-            # Round, preserving 'nan'
+            # Round, preserving 'nan' - was there in the original code
             rounded_values = []
             for val in depth_values:
                 if val.lower() == 'nan':
