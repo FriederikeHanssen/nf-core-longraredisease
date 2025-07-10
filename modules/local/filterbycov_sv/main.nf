@@ -11,9 +11,10 @@ process FILTERBYCOV_SV {
     val chromosome_codes
     val min_read_support
     val min_read_support_limit
+    val filter_pass  // NEW: Add filter_pass parameter
     
     output:
-    tuple val(meta), path("*filterbycov.vcf"), emit: filterbycov_vcf // Not sure if this is correct, but otherwise had issues with file being named the same as input
+    tuple val(meta), path("*filterbycov.vcf"), emit: filterbycov_vcf
     path "versions.yml", emit: versions
     
     when:
@@ -24,6 +25,8 @@ process FILTERBYCOV_SV {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def ctgs = chromosome_codes.join(',')
     def ctgs_filter = "--contigs ${ctgs}"
+    def pass_filter_arg = filter_pass ? "--filter_pass" : "--no-filter_pass"  // NEW: Set PASS filter argument
+    
     """
     # Filter bed file for callable regions - handle gzipped files directly
     if [[ "${target_bed}" != "OPTIONAL_FILE" ]]; then
@@ -52,7 +55,7 @@ process FILTERBYCOV_SV {
     # Extract average depth from mosdepth summary
     AVG_DEPTH=\$(awk '\$1 == "total" {print \$4}' ${mosdepth_summary})
     
-    # Generate filtering command
+    # Generate filtering command with PASS filter option
     get_filter_calls_command.py \\
         --bcftools_threads ${task.cpus} \\
         --target_bedfile \$target_bed_arg \\
@@ -61,6 +64,7 @@ process FILTERBYCOV_SV {
         --min_read_support ${min_read_support} \\
         --min_read_support_limit ${min_read_support_limit} \\
         ${ctgs_filter} \\
+        ${pass_filter_arg} \\
         ${args} > filter_command.sh
     
     # Execute filtering

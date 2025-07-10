@@ -13,7 +13,8 @@ workflow filterbycov_sniffles_subworkflow {
     chromosome_codes    // val: list of chromosome codes
     min_read_support    // val: minimum read support
     min_read_support_limit // val: minimum read support limit
-    
+    filter_pass        // val: boolean to filter PASS variants (optional, default: false)
+
     main:
     
     ch_versions = Channel.empty()
@@ -25,7 +26,8 @@ workflow filterbycov_sniffles_subworkflow {
         ch_bed_file,
         chromosome_codes,
         min_read_support,
-        min_read_support_limit
+        min_read_support_limit,
+        filter_pass
     )
     ch_versions = ch_versions.mix(FILTERBYCOV_SNIFFLES.out.versions)
     

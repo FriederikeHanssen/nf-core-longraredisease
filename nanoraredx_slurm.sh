@@ -8,6 +8,6 @@
 module purge
 module load bluebear
 module load bear-apps/2022b
-module load Nextflow/24.04.2
+module load Nextflow/25.04.6
 
 nextflow run main.nf -profile test,singularity -resume

@@ -127,6 +127,26 @@ def parse_arguments():
         default=None
     )
 
+    # NEW ARGUMENT: Make PASS filter optional
+    parser.add_argument(
+        "--filter_pass",
+        help=(
+            "Apply PASS filter to keep only variants that passed all filters. "
+            "Use --filter_pass to enable, --no-filter_pass to disable."
+        ),
+        action='store_true',
+        default=True  # Default to True (apply PASS filter)
+    )
+
+    parser.add_argument(
+        "--no-filter_pass",
+        help=(
+            "Disable PASS filter (keep all variants regardless of FILTER field)."
+        ),
+        dest='filter_pass',
+        action='store_false'
+    )
+
     return parser.parse_args()
 
 
@@ -167,11 +187,15 @@ def main():
     if args.contigs:
         filter_string = f"{filter_string} -r {args.contigs} "
 
+    # Filter for PASS variants if specified
+    pass_filter = "-f PASS" if args.filter_pass else ""
+
     # Print command to stdout
     command = (
-        "bcftools view -f PASS --threads "
+        f"bcftools view {pass_filter} --threads "
         f"{args.bcftools_threads} {filter_string} {args.vcf}"
-    )
+    ).strip()  # Remove extra spaces
+    
     sys.stdout.write(command)
 
 
