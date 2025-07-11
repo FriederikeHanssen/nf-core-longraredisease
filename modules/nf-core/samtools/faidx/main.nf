@@ -9,7 +9,6 @@ process SAMTOOLS_FAIDX {
 
     input:
     tuple val(meta), path(fasta)
-    tuple val(meta2), path(fai)
     val get_sizes
 
     output:

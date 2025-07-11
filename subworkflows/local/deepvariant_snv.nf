@@ -30,6 +30,6 @@ workflow deepvariant_snv_subworkflow {
 
     emit:
     vcf      = DEEPVARIANT_RUNDEEPVARIANT.out.vcf      // channel: [meta, vcf]
-    vcf_tbi  = DEEPVARIANT_RUNDEEPVARIANT.out.vcf_tbi  // channel: [meta, vcf_tbi]
+    tbi  = DEEPVARIANT_RUNDEEPVARIANT.out.vcf_tbi  // channel: [meta, vcf_tbi]
     versions = ch_versions                              // channel: [versions.yml]
 }
