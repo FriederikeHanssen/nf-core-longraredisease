@@ -3,7 +3,7 @@ process SPECTRE {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "wave.seqera.io/wt/7fb80fdd9784/wave/build:d9a1390fc3153e0e" // had to recreate the container as expired. Originally created using wave cli
+    container "docker.io/nourmahfel1/spectre" // had to recreate the container as expired. Originally created using wave cli
 
     input:
     path(mosdepth_cov)

@@ -16,7 +16,6 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-nextflow.enable.dsl = 2
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,37 +146,19 @@ workflow nanoraredx {
     ================================================================================
     */
     
-    // Reference genome FASTA file
     ch_fasta = Channel
-        .fromPath(params.fasta_file, checkIfExists: true)
-        .map { fasta -> tuple([id: "ref"], fasta) }
+    .fromPath(params.fasta_file, checkIfExists: true)
+    .map { fasta -> tuple([id: "ref"], fasta) }
 
-    // Reference genome index file (generated from samtools faidx)
-    def fai_file = file("${params.fasta_file}.fai")
+    // Generate FAI index
+    generate_fai_subworkflow(ch_fasta, true)
+    ch_fai = generate_fai_subworkflow.out.fai
+
+    // Create combined FASTA+FAI channel by joining
+    ch_fasta_fai = ch_fasta
+    .join(ch_fai, by: 0)
+    .map { meta, fasta, fai -> tuple(meta, fasta, fai) }
     
-    if (fai_file.exists()) {
-        log.info "Using existing FAI file: ${fai_file}"
-        ch_fai = Channel
-            .fromPath("${params.fasta_file}.fai", checkIfExists: true)
-            .map { fai -> tuple([id: "ref_fai"], fai) }
-        
-        ch_fasta_fai = Channel
-            .fromPath(params.fasta_file, checkIfExists: true)
-            .map { fasta -> 
-                def fai = file("${fasta}.fai")
-                tuple([id: "ref"], fasta, fai)
-            }
-    } else {
-        log.info "FAI file not found. Generating index for: ${params.fasta_file}"
-        
-        // Generate FAI file using samtools faidx
-        generate_fai_subworkflow(ch_fasta, true)
-        
-        ch_fai = generate_fai_subworkflow.out.ch_fai
-        ch_fasta_fai = ch_fasta
-            .join(generate_fai_subworkflow.out.ch_fai, by: 0)
-            .map { meta, fasta, fai -> tuple(meta, fasta, fai) }
-    }
 
     // Tandem repeat file for Sniffles (only if SV calling is enabled)
     if (params.sv) {
@@ -260,23 +241,10 @@ workflow nanoraredx {
                 return [meta, bam]
             }
 
-        // Check if BAI file exists and handle accordingly
-        def bai_file = file("${params.aligned_bam}.bai")
-        if (bai_file.exists()) {
-            log.info "Using existing BAI file: ${bai_file}"
-            ch_aligned_bai = Channel
-                .fromPath("${params.aligned_bam}.bai", checkIfExists: true)
-                .map { bai ->
-                    def meta = [id: params.sample_name]
-                    return [meta, bai]
-                }
-        } else {
-            log.info "BAI file not found. Generating index for: ${params.aligned_bam}"
-            
-            // Generate BAI file using samtools index
-            samtools_index_subworkflow(ch_aligned_bam)
-            ch_aligned_bai = samtools_index_subworkflow.out.bai
-        }
+        // Always generate BAI index through proper subworkflow
+        log.info "Generating/ensuring BAI index for: ${params.aligned_bam}"
+        samtools_index_subworkflow(ch_aligned_bam)
+        ch_aligned_bai = samtools_index_subworkflow.out.bai
 
         // Set final aligned BAM channels from input
         ch_final_sorted_bam = ch_aligned_bam
@@ -637,15 +605,8 @@ workflow nanoraredx {
     ch_final_dv_vcf = Channel.empty()
     ch_final_unified_snv = Channel.empty()
     }
-    
-    /*
-    ================================================================================
-                                PHASING ANALYSIS
-    ================================================================================
-    */
-    
-    // Run phasing with LongPhase if enabled
-    /*
+
+/*
 ================================================================================
                             PHASING ANALYSIS
 ================================================================================
@@ -702,7 +663,7 @@ if (params.phase && params.snv) {
     )
     }
 
-    /*
+/*
 ================================================================================
                         COPY NUMBER VARIANT CALLING
 ================================================================================
@@ -729,7 +690,7 @@ if (params.cnv) {
         // Spectre CNV calling - requires SNV data unless using test data
         if (params.use_test_data) {
             log.info "Running Spectre CNV calling in test mode with hardcoded parameters"
-            // Test mode with hardcoded parameters
+            // Test mode with hardcoded parameters as can not be run on subset of data
             ch_spectre_reference = Channel
                 .fromPath(params.spectre_snv_vcf, checkIfExists: true)
                 .map { vcf_file -> 
@@ -756,21 +717,28 @@ if (params.cnv) {
             
             // Prepare reference channel for Spectre CNV calling
             ch_spectre_reference = ch_final_snv_vcf
-                .map { meta, vcf_file -> 
-                    return [id: params.sample_name]  // Use sample_name parameter
-                }
-                .combine(ch_fasta.map { meta, fasta -> fasta })
-                .map { meta, fasta -> tuple(meta, fasta) }
-            
+            .map { meta, vcf_file -> 
+            [id: params.sample_name]  // Create new meta with sample_name
+            }
+            .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))
+            .map { meta, fasta -> tuple(meta, fasta) }
+    
+            // Extract just the VCF file from the ch_final_snv_vcf channel
+            ch_snv_vcf_only = ch_final_snv_vcf.map { meta, vcf -> vcf }
+    
+            // Extract just the BED file from mosdepth output
+            ch_mosdepth_bed_only = mosdepth_subworkflow.out.regions_bed.map { meta, bed -> bed }
+    
             spectre_cnv_subworkflow(
-                mosdepth_subworkflow.out.regions_bed,  
-                ch_spectre_reference,
-                ch_final_snv_vcf,      // Use Clair3 results 
+                ch_mosdepth_bed_only,     
+                ch_spectre_reference,     
+                ch_snv_vcf_only,         
                 params.spectre_metadata,
                 params.spectre_blacklist
             )
             ch_spectre_vcf = spectre_cnv_subworkflow.out.vcf
-        }
+        
+         }
 
         // Round decimal places in Spectre output
         round_dp_spectre_subworkflow(ch_spectre_vcf)
@@ -802,7 +770,7 @@ if (params.str) {
 
 /*
 ================================================================================
-                        VCF UNIFICATION (ALL THREE REQUIRED)
+                        VCF UNIFICATION 
 ================================================================================
 */
 

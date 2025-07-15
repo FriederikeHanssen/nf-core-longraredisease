@@ -12,8 +12,8 @@ workflow generate_fai_subworkflow {
     // Generate FASTA index (FAI) files
     SAMTOOLS_FAIDX(ch_fasta, sizes)
 
-    ch_fai = SAMTOOLS_FAIDX.out.fai
+    fai = SAMTOOLS_FAIDX.out.fai
 
     emit:
-    ch_fai // channel: [meta, fasta.fai] - indexed FASTA files
+    fai // channel: [meta, fasta.fai] - indexed FASTA files
 }
