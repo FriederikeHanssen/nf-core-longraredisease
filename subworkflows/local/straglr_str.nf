@@ -1,10 +1,4 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl = 2
-
-//
 // Subworkflow to identify STR repeats in a genome using STAGLR
-//
 
 include { STRAGLR } from '../../modules/local/straglr/main'
 

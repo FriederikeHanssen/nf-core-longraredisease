@@ -12,8 +12,8 @@ process UNIFYVCF {
     val(modify_repeats)                 // Boolean: whether to modify repeat calls
 
     output:
-    tuple val(meta), path("${prefix}_unified.vcf.gz"), emit: unified_vcf
-    tuple val(meta), path("${prefix}_unified.vcf.gz.tbi"), emit: unified_tbi
+    tuple val(meta), path("${prefix}_unify.vcf.gz"), emit: unified_vcf
+    tuple val(meta), path("${prefix}_unify.vcf.gz.tbi"), emit: unified_tbi
     path "versions.yml", emit: versions
 
     when:
@@ -31,14 +31,14 @@ process UNIFYVCF {
     
     """
     ONTUnifyVcf.py \\
-        -o ${prefix}_unified.vcf \\
+        -o ${prefix}_unify.vcf \\
         ${sv_arg} \\
         ${cnv_arg} \\
         ${repeat_arg} \\
         ${modify_repeats_arg} \\
         ${args}
 
-    tabix ${prefix}_unified.vcf.gz
+    tabix ${prefix}_unify.vcf.gz
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -49,7 +49,7 @@ process UNIFYVCF {
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}_unified.vcf
+    touch ${prefix}_unify.vcf
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

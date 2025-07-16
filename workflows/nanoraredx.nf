@@ -24,7 +24,7 @@
 */
 
 // Data preprocessing subworkflows
-include { bam_stats_subworkflow              } from '../subworkflows/local/samtools_bam_stats.nf'
+include { BAM_STATS_SAMTOOLS                 } from '../subworkflows/nf-core/bam_stats_samtools/main.nf'
 include { samtools_index_subworkflow         } from '../subworkflows/local/samtools_index.nf'
 include { generate_fai_subworkflow           } from '../subworkflows/local/generate_fai.nf'
 include { samtools_merge_bam_subworkflow     } from '../subworkflows/local/samtools_merge_bam.nf'
@@ -46,9 +46,7 @@ include { cutesv_sv_subworkflow   } from '../subworkflows/local/cutesv_sv.nf'
 include { svim_sv_subworkflow     } from '../subworkflows/local/svim_sv.nf'
 
 // SV filtering subworkflows - coverage-based filtering
-include { filterbycov_svim_subworkflow     } from '../subworkflows/local/filterbycov_svim.nf'
-include { filterbycov_sniffles_subworkflow } from '../subworkflows/local/filterbycov_sniffles.nf'
-include { filterbycov_cutesv_subworkflow   } from '../subworkflows/local/filterbycov_cutesv.nf'
+include { low_coverage_sv_filter_subworkflow } from '../subworkflows/local/low_coverage_sv_filter.nf'
 
 // SV merging and intersection filtering subworkflows
 include { multi_caller_sv_filter_subworkflow } from '../subworkflows/local/multi_caller_sv_filter.nf'
@@ -93,11 +91,11 @@ workflow nanoraredx {
         error "Phasing with SVs requires SV calling to be enabled (--sv true)"
     }
 
-    if (params.filter_sv_coverage && !params.sv) {
+    if (params.exclude_low_coverage_SV && !params.sv) {
         error "SV coverage filtering requires SV calling to be enabled (--sv true)"
     }
 
-    if (params.unify_vcfs && !(params.sv && params.cnv && params.str)) {
+    if (params.unify_SV_CNV_STR_vcfs && !(params.sv && params.cnv && params.str)) {
         error "VCF unification requires SV, CNV, and STR to be enabled (--sv true, --cnv true, --str true)"
     }
 
@@ -140,11 +138,11 @@ workflow nanoraredx {
         }
     }
 
-    /*
-    ================================================================================
+/*
+=======================================================================================
                                 REFERENCE FILES SETUP
-    ================================================================================
-    */
+=======================================================================================
+*/
     
     ch_fasta = Channel
     .fromPath(params.fasta_file, checkIfExists: true)
@@ -169,11 +167,11 @@ workflow nanoraredx {
         ch_trf = Channel.empty()
     }
 
-    /*
-    ================================================================================
-                            DATA PREPROCESSING PIPELINE
-    ================================================================================
-    */
+/*
+=======================================================================================
+                               DATA PREPROCESSING PIPELINE
+=======================================================================================
+*/
     
     if (params.align) {
         /*
@@ -182,7 +180,6 @@ workflow nanoraredx {
         ================================================================================
         */
         
-        log.info "Running alignment workflow with unaligned BAMs from: ${params.bam_dir}"
         log.info "Sample name: ${params.sample_name}"
         
         // Collect unaligned BAM files and use parameter-defined sample name
@@ -229,10 +226,6 @@ workflow nanoraredx {
         ================================================================================
         */
         
-        log.info "Using pre-aligned BAM: ${params.aligned_bam}"
-        log.info "Sample name: ${params.sample_name}"
-        log.info "Skipping alignment steps (merge, fastq conversion, minimap2)"
-        
         // Use pre-aligned BAM file
         ch_aligned_bam = Channel
             .fromPath(params.aligned_bam, checkIfExists: true)
@@ -241,10 +234,19 @@ workflow nanoraredx {
                 return [meta, bam]
             }
 
-        // Always generate BAI index through proper subworkflow
-        log.info "Generating/ensuring BAI index for: ${params.aligned_bam}"
-        samtools_index_subworkflow(ch_aligned_bam)
-        ch_aligned_bai = samtools_index_subworkflow.out.bai
+        // Check if BAI file already exists before generating
+        def bai_file = file("${params.aligned_bam}.bai")
+        
+        if (bai_file.exists()) {
+            // Create channel with existing BAI file
+            ch_aligned_bai = ch_aligned_bam.map { meta, bam ->
+                return [meta, file("${bam}.bai")]
+            }
+        } else {
+            // Generate BAI index through proper subworkflow
+            samtools_index_subworkflow(ch_aligned_bam)
+            ch_aligned_bai = samtools_index_subworkflow.out.bai
+        }
 
         // Set final aligned BAM channels from input
         ch_final_sorted_bam = ch_aligned_bam
@@ -254,11 +256,11 @@ workflow nanoraredx {
         ch_fastq_nanoplot = Channel.empty()
     }
 
-    /*
-    ================================================================================
+/*
+=======================================================================================
                                 COVERAGE ANALYSIS
-    ================================================================================
-    */
+=======================================================================================
+*/
     
     // Prepare input channel with BAM, BAI, and optional BED file for coverage analysis
     ch_input_bam_bai_bed = ch_final_sorted_bam
@@ -274,9 +276,8 @@ workflow nanoraredx {
         .map { meta, bam, bai -> tuple(meta, bam, bai) }
 
     if (params.generate_bam_stats) {
-        log.info "Generating BAM statistics using samtools"
         // Run BAM statistics using samtools
-        bam_stats_subworkflow(
+        BAM_STATS_SAMTOOLS(
             ch_input_bam,
             ch_fasta
         )
@@ -284,17 +285,15 @@ workflow nanoraredx {
     
     // Run nanoplot (only if we have FASTQ data from alignment workflow)
     if (params.qc && params.align) {
-        log.info "Running NanoPlot for quality control"
         nanoplot_subworkflow(
             ch_fastq_nanoplot
         )
     } else if (params.qc && !params.align) {
-        log.info "Skipping NanoPlot: QC enabled but no FASTQ data available (using pre-aligned BAM)"
+        log.warn "Skipping NanoPlot: QC enabled but no FASTQ data available (using pre-aligned BAM)"
     }
     
     // Run mosdepth when needed
     if (params.sv || params.cnv || params.generate_coverage) {
-        log.info "Running mosdepth for coverage analysis"
         mosdepth_subworkflow(
             ch_input_bam_bai_bed,
             [[:], []]
@@ -302,7 +301,7 @@ workflow nanoraredx {
     }
 
     // Coverage analysis only needed for SV filtering
-    if (params.sv && params.filter_sv_coverage) {
+    if (params.sv && params.exclude_low_coverage_SV) {
         mosdepth_cov_analysis_subworkflow(
             ch_input_bam_bai_bed,
             [[:], []]
@@ -313,7 +312,6 @@ workflow nanoraredx {
     ch_empty_bed = Channel.value([[:], []])
 
     if (params.methyl) {
-        log.info "Running methylation calling with modkit"
         modkit_methyl_subworkflow(
             ch_input_bam,
             ch_fasta_fai,
@@ -327,163 +325,146 @@ workflow nanoraredx {
         )
     }
 
+   
+/*
+=======================================================================================
+                        STRUCTURAL VARIANT CALLING WORKFLOW
+=======================================================================================
+*/
+
+if (params.sv) {
+
     /*
     ================================================================================
-                            STRUCTURAL VARIANT CALLING
+                            PARALLEL SV CALLER EXECUTION
     ================================================================================
     */
     
-    if (params.sv) {
-        // Run three different SV callers in parallel for comprehensive SV detection
-        log.info "Running structural variant calling with Sniffles, CuteSV, and SVIM"
-        // Sniffles: Population-scale SV calling
-        sniffles_sv_subworkflow(
-            ch_input_bam,
-            ch_fasta,
-            ch_trf,
-            params.vcf_output,
-            params.snf_output
-        )
+    // Sniffles: Population-scale SV calling (PRIMARY CALLER)
+    sniffles_sv_subworkflow(
+        ch_input_bam,
+        ch_fasta,
+        ch_trf,
+        params.vcf_output,
+        params.snf_output
+    )
 
-        // CuteSV: Long-read SV detection with high sensitivity
-        cutesv_sv_subworkflow(
-            ch_input_bam,
-            ch_fasta
-        )
+    // CuteSV: Long-read SV detection with high sensitivity
+    cutesv_sv_subworkflow(
+        ch_input_bam,
+        ch_fasta
+    )
 
-        // SVIM: Structural variant identification using alignment information
-        svim_sv_subworkflow(
-            ch_input_bam,
-            ch_fasta
-        )
+    // SVIM: Structural variant identification using alignment information
+    svim_sv_subworkflow(
+        ch_input_bam,
+        ch_fasta
+    )
 
-        /*
-        ================================================================================
-                                SV FILTERING BY COVERAGE
-        ================================================================================
-        */
-        
-        // Apply coverage-based filtering to SV calls if requested
-        if (params.filter_sv_coverage) {
-            log.info "Applying coverage-based filtering to SV calls"
-            // Filter Sniffles results based on coverage depth and callable regions
-            filterbycov_sniffles_subworkflow (
-                sniffles_sv_subworkflow.out.vcf,
-                mosdepth_subworkflow.out.summary_txt,
-                mosdepth_cov_analysis_subworkflow.out.quantized_bed,
-                params.chromosome_codes,
-                params.min_read_support ?: 'auto',
-                params.min_read_support_limit ?: 3,
-                params.filter_pass ?: false
-            )
-            
-            // Filter CuteSV results using same coverage criteria
-            filterbycov_cutesv_subworkflow (
-                cutesv_sv_subworkflow.out.vcf,
-                mosdepth_subworkflow.out.summary_txt,
-                mosdepth_cov_analysis_subworkflow.out.quantized_bed,
-                params.chromosome_codes,
-                params.min_read_support ?: 'auto',
-                params.min_read_support_limit ?: 3,
-                params.filter_pass ?: false
-            )
-            
-            // Filter SVIM results using coverage information
-            filterbycov_svim_subworkflow (
-                svim_sv_subworkflow.out.vcf,
-                mosdepth_subworkflow.out.summary_txt,
-                mosdepth_cov_analysis_subworkflow.out.quantized_bed,
-                params.chromosome_codes,
-                params.min_read_support ?: 'auto',
-                params.min_read_support_limit ?: 3,
-                params.filter_pass ?: false
-            )
-            
-            // Use filtered VCFs for downstream analysis
-            ch_filtered_sniffles_vcf = filterbycov_sniffles_subworkflow.out.filtered_vcf
-            ch_filtered_cutesv_vcf   = filterbycov_cutesv_subworkflow.out.filtered_vcf
-            ch_filtered_svim_vcf     = filterbycov_svim_subworkflow.out.filtered_vcf
-            
-        } else {
-            // Use original unfiltered VCFs
-            ch_filtered_sniffles_vcf = sniffles_sv_subworkflow.out.vcf
-            ch_filtered_cutesv_vcf   = cutesv_sv_subworkflow.out.vcf
-            ch_filtered_svim_vcf     = svim_sv_subworkflow.out.vcf
-        }
+    // Collect outputs from all SV callers
+    ch_sniffles_vcf = sniffles_sv_subworkflow.out.vcf
+    ch_svim_vcf     = svim_sv_subworkflow.out.vcf
+    ch_cutesv_vcf   = cutesv_sv_subworkflow.out.vcf
+    
+    // Initialize primary SV VCF with Sniffles output (our gold standard)
+    ch_primary_sv_vcf = ch_sniffles_vcf
 
-        /*
-        ================================================================================
-                            SV MERGING AND INTERSECTION FILTERING
-        ================================================================================
-        */
-        
-        // Merge SV calls from different callers using SURVIVOR or use individual results
-        if (params.multi_caller_sv_filtering) {
-            log.info "Combining SV calls from multiple callers and filtering using SURVIVOR"
-            // Create chromosome sizes channel for bedtools intersect
-            ch_chrom_sizes = params.chrom_sizes ? 
-                Channel.value([[:], file(params.chrom_sizes)]) : 
-                Channel.value([[:], []])
+    /*
+    ================================================================================
+                        MULTI-CALLER FILTERING AND CONSENSUS
+    ================================================================================
+    */
+    
+    if (params.multi_caller_sv_filtering) {
+        // Create chromosome sizes channel
+        ch_chrom_sizes = params.chrom_sizes ? 
+            Channel.value([[:], file(params.chrom_sizes, checkIfExists: true)]) : 
+            Channel.value([[:], []])
 
-            // Prepare VCFs for SURVIVOR merging using the sample_name parameter
-            ch_vcfs_for_merging = ch_filtered_sniffles_vcf
-                .map { meta, vcf -> 
-                    [params.sample_name, vcf, 'sniffles'] 
-                }
-                .mix(
-                    ch_filtered_cutesv_vcf.map { meta, vcf -> 
-                        [params.sample_name, vcf, 'cutesv'] 
+        // Prepare VCFs for SURVIVOR merging
+        ch_vcfs_for_merging = ch_sniffles_vcf
+            .map { meta, vcf -> 
+                [params.sample_name ?: meta.id, vcf, 'sniffles'] 
+            }
+            .mix(
+                ch_cutesv_vcf
+                    .filter { meta, vcf -> vcf && vcf.exists() }
+                    .map { meta, vcf -> 
+                        [params.sample_name ?: meta.id, vcf, 'cutesv'] 
                     }
-                )
-                .mix(
-                    ch_filtered_svim_vcf.map { meta, vcf -> 
-                        [params.sample_name, vcf, 'svim'] 
-                    }
-                )
-                .groupTuple(by: 0)
-                .map { sample_id, vcfs, callers ->
-                    def meta = [id: sample_id]
-                    [meta, vcfs]
-                }
-
-            // Run the multi-caller SV filtering subworkflow
-            multi_caller_sv_filter_subworkflow(
-                ch_vcfs_for_merging,           // VCFs for SURVIVOR merging
-                ch_filtered_cutesv_vcf,        // Individual CuteSV VCFs
-                ch_filtered_sniffles_vcf,      // Individual Sniffles VCFs  
-                ch_filtered_svim_vcf,          // Individual SVIM VCFs
-                ch_chrom_sizes,                // Chromosome sizes for bedtools
-                params.max_distance_breakpoints,
-                params.min_supporting_callers,
-                params.account_for_type,
-                params.account_for_sv_strands,
-                params.estimate_distanced_by_sv_size,
-                params.min_sv_size
             )
+            .mix(
+                ch_svim_vcf
+                    .filter { meta, vcf -> vcf && vcf.exists() }
+                    .map { meta, vcf -> 
+                        [params.sample_name ?: meta.id, vcf, 'svim'] 
+                    }
+            )
+            .groupTuple(by: 0)
+            .map { sample_id, vcfs, callers ->
+                def meta = [id: sample_id, callers: callers]
+                [meta, vcfs]
+            }
 
-            // Use the subworkflow outputs for downstream analysis
-            ch_concatenated_vcf = multi_caller_sv_filter_subworkflow.out.concatenated_vcf
+        // Run multi-caller filtering
+        multi_caller_sv_filter_subworkflow(
+            ch_vcfs_for_merging,
+            ch_primary_sv_vcf,                                // Use consistent channel name
+            ch_chrom_sizes,
+            params.max_distance_breakpoints ?: 1000,
+            params.min_supporting_callers ?: 2,
+            params.account_for_type ?: true,
+            params.account_for_sv_strands ?: true,
+            params.estimate_distanced_by_sv_size ?: false,
+            params.min_sv_size ?: 50
+        )
 
-        } else {  
-            ch_concatenated_vcf = Channel.empty()
-        }
-        
-    } else {
-        // No SV calling - create empty channels
-        ch_filtered_sniffles_vcf = Channel.empty()
-        ch_filtered_cutesv_vcf   = Channel.empty()
-        ch_filtered_svim_vcf     = Channel.empty()
-        ch_concatenated_vcf      = Channel.empty()
+        // Update primary VCF to filtered result
+        ch_primary_sv_vcf = multi_caller_sv_filter_subworkflow.out.filtered_vcf_sniffles
     }
 
     /*
     ================================================================================
-                            SINGLE NUCLEOTIDE VARIANT CALLING
+                            COVERAGE-BASED FILTERING
     ================================================================================
     */
     
-    if (params.snv) {
-    log.info "Running SNV calling with Clair3"
+    if (params.exclude_low_coverage_SV) {
+        
+        // Apply coverage-based filtering
+        low_coverage_sv_filter_subworkflow(
+            ch_primary_sv_vcf,                                // Use consistent channel name
+            mosdepth_subworkflow.out.summary_txt,
+            mosdepth_cov_analysis_subworkflow.out.quantized_bed,
+            params.chromosome_codes ?: 'chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY',
+            params.min_read_support ?: 'auto',
+            params.min_read_support_limit ?: 3,
+            params.filter_pass ?: false
+        )
+        
+        // Update primary VCF to coverage-filtered result
+        ch_primary_sv_vcf = low_coverage_sv_filter_subworkflow.out.filtered_vcf
+    }
+ 
+    } 
+    
+else {
+    
+    // Create empty channels for consistent workflow structure
+    ch_sniffles_vcf   = Channel.empty()
+    ch_svim_vcf       = Channel.empty()
+    ch_cutesv_vcf     = Channel.empty()
+    ch_primary_sv_vcf = Channel.empty()
+}
+   
+/*
+================================================================================
+                        SINGLE NUCLEOTIDE VARIANT CALLING
+================================================================================
+*/
+
+if (params.snv) {
+
     
     // Prepare input for Clair3 SNV calling
     ch_input_bam_clair3 = ch_input_bam.map { meta, bam, bai ->
@@ -506,13 +487,12 @@ workflow nanoraredx {
         ch_fai
     )
 
-    // Access outputs correctly
-    ch_snv_vcf = clair3_snv_subworkflow.out.vcf
-    ch_snv_tbi = clair3_snv_subworkflow.out.tbi
+    ch_clair3_vcf = clair3_snv_subworkflow.out.vcf
+    ch_clair3_tbi = clair3_snv_subworkflow.out.tbi
 
     if (params.filter_pass) {
         // Prepare input channels for BCFTOOLS_VIEW
-        ch_vcf_index = ch_snv_vcf.join(ch_snv_tbi, by: 0)
+        ch_clair3_vcf_tbi = ch_clair3_vcf.join(ch_clair3_tbi, by: 0)
         
         // Create empty channels for optional inputs
         ch_regions = Channel.value([])
@@ -521,29 +501,26 @@ workflow nanoraredx {
         
         // Call BCFTOOLS_VIEW with correct input structure
         bcftools_filter_clair3_subworkflow(
-            ch_vcf_index,    // tuple val(meta), path(vcf), path(index)
-            ch_regions,      // path(regions) - empty
-            ch_targets,      // path(targets) - empty  
-            ch_samples       // path(samples) - empty
+            ch_clair3_vcf_tbi,   // tuple val(meta), path(vcf), path(index)
+            ch_regions,          // path(regions) - empty
+            ch_targets,          // path(targets) - empty  
+            ch_samples           // path(samples) - empty
         )
         
         // Use filtered results
-        ch_final_snv_vcf = bcftools_filter_clair3_subworkflow.out.vcf
+        ch_clair3_vcf = bcftools_filter_clair3_subworkflow.out.vcf
+        ch_clair3_tbi = bcftools_filter_clair3_subworkflow.out.tbi
     } 
-    else {
-        // Use unfiltered results
-        ch_final_snv_vcf = ch_snv_vcf
+    } else {
+    // No SNV calling - create empty channels
+    ch_clair3_vcf = Channel.empty()
+    ch_clair3_tbi = Channel.empty()
     }
-    } 
-    else {
-    // No SNV calling - create empty channel
-    ch_final_snv_vcf = Channel.empty()
-    }
-    
 
-    // Run SNV calling with Clair3 and optionally DeepVariant
-    if (params.run_deepvariant) {
-    log.info "Running DeepVariant SNV calling"
+// Run DeepVariant SNV calling if requested
+
+if (params.run_deepvariant) {
+
     
     deepvariant_snv_subworkflow(
         ch_input_bam_bai_bed,
@@ -558,7 +535,7 @@ workflow nanoraredx {
 
     if (params.filter_pass) {
         // Prepare input channels for BCFTOOLS_VIEW
-        ch_vcf_index_dv = ch_dv_vcf.join(ch_dv_tbi, by: 0)
+        ch_dv_vcf_tbi = ch_dv_vcf.join(ch_dv_tbi, by: 0)
         
         // Create empty channels for optional inputs
         ch_regions = Channel.value([])
@@ -567,112 +544,149 @@ workflow nanoraredx {
         
         // Call BCFTOOLS_VIEW with correct input structure
         bcftools_filter_deepvariant_subworkflow(
-            ch_vcf_index_dv, // tuple val(meta), path(vcf), path(index)
-            ch_regions,      // path(regions) - empty
-            ch_targets,      // path(targets) - empty  
-            ch_samples       // path(samples) - empty
+            ch_dv_vcf_tbi,       // tuple val(meta), path(vcf), path(index)
+            ch_regions,          // path(regions) - empty
+            ch_targets,          // path(targets) - empty  
+            ch_samples           // path(samples) - empty
         )
         
-        ch_final_dv_vcf = bcftools_filter_deepvariant_subworkflow.out.vcf
-    } else {
-        ch_final_dv_vcf = ch_dv_vcf
+    } 
     }
 
-    if (params.unify_snv_geneyx) {
-        log.info "Unifying SNV VCFs from Clair3 and DeepVariant"
-        if (!params.snv){
-            error "Unifying SNV VCFs requires SNV calling to be enabled (--snv true)"
+    // Unify SNV VCFs from Clair3 and DeepVariant if requested
+if (params.unify_SNV && params.run_deepvariant && params.snv) {
+
+    
+    // Combine and concatenate VCF files from both callers
+    // The bcftools_concat_snv_subworkflow expects: tuple(meta, [vcfs], [tbis])
+    combined_vcfs = ch_clair3_vcf
+        .join(ch_clair3_tbi, by: 0)
+        .join(ch_dv_vcf.join(ch_dv_tbi, by: 0), by: 0)
+        .map { meta, clair3_vcf, clair3_tbi, dv_vcf, dv_tbi ->
+            [
+                meta,
+                [clair3_vcf, dv_vcf],    // List of VCF files
+                [clair3_tbi, dv_tbi]     // List of corresponding TBI files
+            ]
         }
-        
-        // Combine and concatenate VCF files from both callers
-        combined_vcfs = ch_final_snv_vcf
-            .join(ch_snv_tbi, by: 0)
-            .join(ch_final_dv_vcf.join(ch_dv_tbi, by: 0), by: 0)
-            .map { meta, clair3_vcf, clair3_tbi, dv_vcf, dv_tbi ->
-                [
-                    meta,
-                    [clair3_vcf, dv_vcf],    // List of VCF files
-                    [clair3_tbi, dv_tbi]     // List of corresponding TBI files
-                ]
-            }
 
-        bcftools_concat_snv_subworkflow(combined_vcfs)
-        ch_final_unified_snv = bcftools_concat_snv_subworkflow.out.vcf
-    } else {
-        ch_final_unified_snv = Channel.empty()
-    }
-    } else {
-    ch_final_dv_vcf = Channel.empty()
-    ch_final_unified_snv = Channel.empty()
-    }
+    // Run concatenation (output not captured since not needed elsewhere)
+    bcftools_concat_snv_subworkflow(combined_vcfs)
+    
+    } 
+  
 
 /*
-================================================================================
-                            PHASING ANALYSIS
-================================================================================
+=======================================================================================
+                                 PHASING ANALYSIS
+=======================================================================================
 */
 
 // Run phasing with LongPhase if enabled
 if (params.phase && params.snv) {
-    log.info "Running phasing analysis with LongPhase"
+
     
     if (params.sv && params.phase_with_sv) {
-        // SV calling is enabled and want to use SVs for phasing
-        
-        // Determine which SV channel to use for phasing
-        if (params.phase_with_multicalledSV) {
-            ch_sv_for_phasing = ch_concatenated_vcf
-        } else {
-            log.info "Using individual SV caller VCFs for phasing"
-            if (params.phase_sv_caller == 'sniffles') {
-                log.info "Using Sniffles VCF for phasing"
-                ch_sv_for_phasing = ch_filtered_sniffles_vcf
-            } else if (params.phase_sv_caller == 'cutesv') {
-                log.info "Using CuteSV VCF for phasing"
-                ch_sv_for_phasing = ch_filtered_cutesv_vcf
-            } else if (params.phase_sv_caller == 'svim') {
-                log.info "Using SVIM VCF for phasing"
-                ch_sv_for_phasing = ch_filtered_svim_vcf
-            } else {
-                error "Unknown SV caller: ${params.phase_sv_caller}. Supported: sniffles, cutesv, svim"
-            }
-        }
-
         // Phasing with both SNVs and SVs
         ch_longphase_input = ch_input_bam
-            .join(ch_final_snv_vcf, by: 0)
-            .join(ch_sv_for_phasing, by: 0)
+            .join(ch_clair3_vcf, by: 0)
+            .join(ch_primary_sv_vcf, by: 0)
             .map { meta, bam, bai, snv_vcf, sv_vcf -> 
                 tuple(meta, bam, bai, snv_vcf, sv_vcf, []) 
             }
-
-    } else {
-        // Either SV calling is disabled OR we don't want to use SVs for phasing
+            
+            } 
+    else {
         // Phasing with SNVs only
         ch_longphase_input = ch_input_bam
-            .join(ch_final_snv_vcf, by: 0)
+            .join(ch_clair3_vcf, by: 0)
             .map { meta, bam, bai, snv_vcf -> 
-                tuple(meta, bam, bai, snv_vcf, [], []) 
+            tuple(meta, bam, bai, snv_vcf, [], []) 
+            }   
             }
-    }
 
     longphase_subworkflow(
         ch_longphase_input,
         ch_fasta,
         ch_fai
     )
+
     }
 
 /*
-================================================================================
+=======================================================================================
                         COPY NUMBER VARIANT CALLING
-================================================================================
+=======================================================================================
 */
 
 if (params.cnv) {
-    log.info "Running copy number variant calling"
-    if (params.run_qdnaseq) {
-        log.info "Running QDNAseq CNV calling"
+
+     // Spectre CNV calling - requires SNV data unless using test data
+        
+        if (params.use_test_data) {
+
+            // Test mode with hardcoded parameters as can not be run on subset of data
+            ch_spectre_test_reference = Channel
+                .fromPath(params.spectre_test_clair3_vcf, checkIfExists: true)
+                .map { vcf_file -> 
+                    return [id: params.sample_name]  // Use sample_name parameter
+                }
+                .combine(Channel.fromPath(params.spectre_test_fasta_file, checkIfExists: true))
+                .map { meta, fasta -> tuple(meta, fasta) }
+            
+            spectre_cnv_subworkflow(
+                params.spectre_test_mosdepth,
+                ch_spectre_test_reference,
+                params.spectre_test_clair3_vcf,
+                params.spectre_metadata,
+                params.spectre_blacklist
+            )
+            ch_spectre_vcf = spectre_cnv_subworkflow.out.vcf
+            } 
+            
+        else {
+            
+            if (!params.snv) {
+                error "Spectre CNV calling requires SNV calling to be enabled (--snv true) or use QDNAseq (--run_qdnaseq true)"
+            }
+            
+            // Extract just the BED file from mosdepth output
+            ch_spectre_mosdepth_bed = mosdepth_subworkflow.out.regions_bed.map { meta, bed -> bed }
+            
+            // Prepare reference channel for Spectre CNV calling
+            ch_spectre_reference = ch_clair3_vcf
+            .map { meta, vcf_file -> 
+            [id: params.sample_name]  // Create new meta with sample_name
+            }
+            .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))
+            .map { meta, fasta -> tuple(meta, fasta) }
+            
+            // Extract just the VCF file from the ch_final_snv_vcf channel
+            ch_spectre_clair3_vcf = ch_clair3_vcf.map { meta, vcf -> vcf }
+    
+            spectre_cnv_subworkflow(
+                ch_spectre_mosdepth_bed,
+                ch_spectre_reference, 
+                ch_spectre_clair3_vcf,              
+                params.spectre_metadata,
+                params.spectre_blacklist
+            )
+
+            ch_spectre_vcf = spectre_cnv_subworkflow.out.vcf
+        
+         }
+
+        // Round decimal places in Spectre output
+        round_dp_spectre_subworkflow(ch_spectre_vcf)
+        ch_cnv_vcf = round_dp_spectre_subworkflow.out.vcf
+    }
+    else {
+   
+    ch_cnv_vcf = Channel.empty()
+    
+    }
+
+if (params.run_qdnaseq) {
         // QDNAseq doesn't need mosdepth or SNV data
         qdnaseq_cnv_subworkflow(
             ch_input_bam,
@@ -685,70 +699,7 @@ if (params.cnv) {
             params.cutoff_gain,
             params.cellularity
         )
-        
-    } else {
-        // Spectre CNV calling - requires SNV data unless using test data
-        if (params.use_test_data) {
-            log.info "Running Spectre CNV calling in test mode with hardcoded parameters"
-            // Test mode with hardcoded parameters as can not be run on subset of data
-            ch_spectre_reference = Channel
-                .fromPath(params.spectre_snv_vcf, checkIfExists: true)
-                .map { vcf_file -> 
-                    return [id: params.sample_name]  // Use sample_name parameter
-                }
-                .combine(Channel.fromPath(params.spectre_fasta_file, checkIfExists: true))
-                .map { meta, fasta -> tuple(meta, fasta) }
-            
-            spectre_cnv_subworkflow(
-                params.spectre_mosdepth,
-                ch_spectre_reference,
-                params.spectre_snv_vcf,
-                params.spectre_metadata,
-                params.spectre_blacklist
-            )
-            ch_spectre_vcf = spectre_cnv_subworkflow.out.vcf
-        } else {
-            log.info "Running Spectre CNV calling in production mode with Clair3 results"
-            // Production mode using actual Clair3 pipeline results
-            // Error handling: Check if SNV calling was enabled and produced results
-            if (!params.snv) {
-                error "Spectre CNV calling requires SNV calling to be enabled (--snv true) or use QDNAseq (--run_qdnaseq true)"
-            }
-            
-            // Prepare reference channel for Spectre CNV calling
-            ch_spectre_reference = ch_final_snv_vcf
-            .map { meta, vcf_file -> 
-            [id: params.sample_name]  // Create new meta with sample_name
-            }
-            .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))
-            .map { meta, fasta -> tuple(meta, fasta) }
-    
-            // Extract just the VCF file from the ch_final_snv_vcf channel
-            ch_snv_vcf_only = ch_final_snv_vcf.map { meta, vcf -> vcf }
-    
-            // Extract just the BED file from mosdepth output
-            ch_mosdepth_bed_only = mosdepth_subworkflow.out.regions_bed.map { meta, bed -> bed }
-    
-            spectre_cnv_subworkflow(
-                ch_mosdepth_bed_only,     
-                ch_spectre_reference,     
-                ch_snv_vcf_only,         
-                params.spectre_metadata,
-                params.spectre_blacklist
-            )
-            ch_spectre_vcf = spectre_cnv_subworkflow.out.vcf
-        
-         }
-
-        // Round decimal places in Spectre output
-        round_dp_spectre_subworkflow(ch_spectre_vcf)
-        ch_cnv_vcf = round_dp_spectre_subworkflow.out.vcf
-    }
-    } 
-    else {
-    ch_cnv_vcf = Channel.empty()
-    }
-
+        }
 /*
 ================================================================================
                         SHORT TANDEM REPEAT ANALYSIS
@@ -756,54 +707,46 @@ if (params.cnv) {
 */
 
 if (params.str) {
-    log.info "Running short tandem repeat analysis with STRaGLeR"
     straglr_str_subworkflow(
         ch_input_bam,
         ch_fasta,
         params.str_bed_file
     )
     ch_str_vcf = straglr_str_subworkflow.out.vcf
-} else {
+    
+    } 
+    
+    else {
     ch_str_vcf = Channel.empty()
-}
-
+    }
 
 /*
 ================================================================================
-                        VCF UNIFICATION 
+                             VCF UNIFICATION 
 ================================================================================
 */
 
-if (params.unify_vcfs && params.sv && params.cnv && params.str) {
-    log.info "Running VCF unification for SV, CNV, and STR calls"
-    
-    // Prepare individual VCF channels with consistent metadata
-    ch_sv_for_unify = params.multi_caller_sv_filtering ? 
-        ch_concatenated_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] } :
-        ch_filtered_sniffles_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] }
-    
-    ch_cnv_for_unify = ch_cnv_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] }
-    
-    ch_str_for_unify = ch_str_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] }
-    
-    // Run VCF unification subworkflow
-    unify_vcf_subworkflow(
-        ch_sv_for_unify,                    // SV VCFs
-        ch_cnv_for_unify,                   // CNV VCFs
-        ch_str_for_unify,                   // STR VCFs
-        params.modify_str_calls             // Modify repeat calls flag
-    )
-    
-    ch_unified_vcf = unify_vcf_subworkflow.out.unified_vcf
-    
-} else if (params.unify_vcfs) {
-    // Error if unify_vcfs is requested but not all three variant types are enabled
-    error "VCF unification requires all three variant calling types to be enabled: --sv true --cnv true --str true"
-} else {
-    ch_unified_vcf = Channel.empty()
-}
-
-
+if (params.unify_SV_CNV_STR_vcfs) {
+    if (params.sv && params.cnv && params.str) {
+        
+        // Prepare individual VCF channels with consistent metadata
+        ch_sv_for_unify = ch_primary_sv_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] }
+        
+        ch_cnv_for_unify = ch_cnv_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] }
+        
+        ch_str_for_unify = ch_str_vcf.map { meta, vcf -> [[id: params.sample_name], vcf] }
+        
+        // Run VCF unification subworkflow
+        unify_vcf_subworkflow(
+            ch_sv_for_unify,                    // SV VCFs
+            ch_cnv_for_unify,                   // CNV VCFs
+            ch_str_for_unify,                   // STR VCFs
+            params.modify_str_calls             // Modify repeat calls flag
+        )
+    } else {
+        error "VCF unification requires all three variant calling types to be enabled: --sv true --cnv true --str true"
+    }
+    } 
     /*
     ================================================================================
                             FUTURE ENHANCEMENTS (COMMENTED OUT)
@@ -821,3 +764,5 @@ if (params.unify_vcfs && params.sv && params.cnv && params.str) {
     WORKFLOW COMPLETION
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+

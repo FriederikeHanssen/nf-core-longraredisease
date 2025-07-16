@@ -1,6 +1,4 @@
-//
 // Unify multiple structural variant VCF files (SV, CNV, repeat)
-//
 
 include { UNIFYVCF } from '../../modules/local/unifyvcf_geneyx/main'
 

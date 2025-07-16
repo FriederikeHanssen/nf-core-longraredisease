@@ -1,7 +1,7 @@
 // This workflow is for clair3
 
 include { CLAIR3 } from '../../modules/nf-core/clair3/main.nf'
-include { BCFTOOLS_VIEW_CLAIR3} from '../../modules/local/fix_clair3_vcf/main'
+include { FIX_CLAIR3} from '../../modules/local/fix_clair3_vcf/main'
 
 workflow clair3_snv_subworkflow {
     take:
@@ -21,7 +21,7 @@ workflow clair3_snv_subworkflow {
     // Join VCF and TBI to create the tuple format BCFTOOLS_VIEW expects
     
 
-    BCFTOOLS_VIEW_CLAIR3(
+    FIX_CLAIR3(
         CLAIR3.out.vcf,    // path to VCF file
         CLAIR3.out.tbi,    // path to TBI file
     )       
@@ -30,8 +30,12 @@ workflow clair3_snv_subworkflow {
     ch_versions = ch_versions.mix(CLAIR3.out.versions)
 
     emit:
-    vcf      = BCFTOOLS_VIEW_CLAIR3.out.vcf
-    tbi      = BCFTOOLS_VIEW_CLAIR3.out.tbi
+    vcf        = FIX_CLAIR3.out.vcf
+    tbi        = FIX_CLAIR3.out.tbi
+    full_vcf   = CLAIR3.out.full_vcf
+    full_tbi   = CLAIR3.out.full_tbi
+    pileup_vcf = CLAIR3.out.pileup_vcf
+    pileup_tbi = CLAIR3.out.pileup_tbi
     // phased_vcf = CLAIR3.out.phased_vcf
     // phased_tbi = CLAIR3.out.phased_tbi
     versions = ch_versions

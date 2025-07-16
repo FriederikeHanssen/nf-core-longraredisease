@@ -14,7 +14,7 @@ process FILTERBYCOV_SV {
     val filter_pass  // NEW: Add filter_pass parameter
     
     output:
-    tuple val(meta), path("*filterbycov.vcf"), emit: filterbycov_vcf
+    tuple val(meta), path("*covFiltered.vcf"), emit: filterbycov_vcf
     path "versions.yml", emit: versions
     
     when:
@@ -68,7 +68,7 @@ process FILTERBYCOV_SV {
         ${args} > filter_command.sh
     
     # Execute filtering
-    bash filter_command.sh > ${prefix}_filterbycov.vcf
+    bash filter_command.sh > ${prefix}_covFiltered.vcf
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -80,7 +80,7 @@ process FILTERBYCOV_SV {
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}_filterbycov.vcf
+    touch ${prefix}_covFiltered.vcf
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

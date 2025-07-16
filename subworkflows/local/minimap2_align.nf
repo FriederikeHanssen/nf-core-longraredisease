@@ -1,6 +1,4 @@
-/*
- * Alignment with MINIMAP2
- */
+//Alignment with MINIMAP2
 
 include { MINIMAP2_INDEX } from '../../modules/nf-core/minimap2/index/main'
 include { MINIMAP2_ALIGN } from '../../modules/nf-core/minimap2/align/main'

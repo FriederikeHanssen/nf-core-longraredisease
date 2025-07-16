@@ -1,6 +1,5 @@
-//
 // Convert merged BAM files to extract unmapped/other reads using samtools fastq with methylation tags
-//
+
 
 include { SAMTOOLS_FASTQ } from '../../modules/nf-core/samtools/fastq/main'
 

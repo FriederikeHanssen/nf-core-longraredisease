@@ -1,6 +1,4 @@
-//
 // Subworkflow for running SPECTRE CNV calling
-//
 
 include { SPECTRE } from '../../modules/local/spectre/main'
 include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_SPECTRE} from '../../modules/nf-core/tabix/bgziptabix/main.nf'

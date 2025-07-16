@@ -1,10 +1,7 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl = 2
+// SVIM structural variant caller - used a support caller
 
 include { SVIM } from '../../modules/local/svim/main.nf'
 include { BCFTOOLS_SORT as BCFTOOLS_SORT_SVIM } from '../../modules/nf-core/bcftools/sort/main.nf'
-// include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_SVIM } from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 
 workflow svim_sv_subworkflow {
 
@@ -19,19 +16,8 @@ workflow svim_sv_subworkflow {
     // 2. Sort the VCF with BCFTOOLS_SORT
     BCFTOOLS_SORT_SVIM(SVIM.out.vcf)
 
-    // 2. Compress + index the VCF
-    // SVIM.out.vcf.map { meta, vcf -> tuple(meta, vcf) }
-    //             .set { ch_vcf_to_index }
-
-
-
-//    TABIX_TABIX_SVIM(BCFTOOLS_SORT_SVIM.out.vcf)
-
-    // TABIX_BGZIPTABIX_SVIM(ch_vcf_to_index)
 
     emit:
     vcf         = BCFTOOLS_SORT_SVIM.out.vcf
-    // vcf_gz      = TABIX_BGZIPTABIX_SVIM.out.gz_tbi // channel: [meta, gz_tbi] where gz_tbi = SVIM.out.vcf.gz + SVIM.out.vcf.tbi
-    // tbi          = TABIX_TABIX_SVIM.out.tbi
     versions    = SVIM.out.versions
 }

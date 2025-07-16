@@ -1,6 +1,4 @@
-//
 // Subworkflow for running MOSDEPTH depth analysis
-//
 
 include { MOSDEPTH } from '../../modules/nf-core/mosdepth/main.nf'
 

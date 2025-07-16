@@ -15,6 +15,10 @@ process CLAIR3 {
     output:
     tuple val(meta), path("*merge_output.vcf.gz"),            emit: vcf
     tuple val(meta), path("*merge_output.vcf.gz.tbi"),        emit: tbi
+    tuple val(meta), path("*full_alignment.vcf.gz"),          emit: full_vcf
+    tuple val(meta), path("*full_alignment.vcf.gz.tbi"),      emit: full_tbi
+    tuple val(meta), path("*pileup.vcf.gz"),                  emit: pileup_vcf
+    tuple val(meta), path("*pileup.vcf.gz.tbi"),              emit: pileup_tbi
     tuple val(meta), path("*phased_merge_output.vcf.gz"),     emit: phased_vcf, optional: true
     tuple val(meta), path("*phased_merge_output.vcf.gz.tbi"), emit: phased_tbi, optional: true
     path "versions.yml",                                      emit: versions

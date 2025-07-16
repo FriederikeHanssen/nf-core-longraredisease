@@ -1,6 +1,4 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl = 2
+// SNIFFLES - main sv caller
 
 include { SNIFFLES } from '../../modules/nf-core/sniffles/main.nf'
 include { GUNZIP as GUNZIP_SNIFFLES } from '../../modules/nf-core/gunzip/main.nf'

@@ -1,6 +1,4 @@
-//
 // Subworkflow for merging BAM files
-//
 
 include { SAMTOOLS_MERGE } from '../../modules/nf-core/samtools/merge/main'
 

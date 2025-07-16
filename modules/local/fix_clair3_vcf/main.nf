@@ -1,4 +1,4 @@
-process BCFTOOLS_VIEW_CLAIR3 {
+process FIX_CLAIR3 {
     tag "$meta.id"
     label 'process_medium'
 

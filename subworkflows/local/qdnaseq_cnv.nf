@@ -1,6 +1,5 @@
-//
 // Copy Number Variant Detection Subworkflow
-//
+
 
 include { RUNQDNASEQ } from '../../modules/local/qdnaseq/main.nf'
 
