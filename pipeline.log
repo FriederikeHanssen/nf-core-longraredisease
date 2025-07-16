@@ -1,0 +1,370 @@
+Jul-16 19:53:56.417 [main] DEBUG nextflow.cli.Launcher - $> nextflow -log pipeline.log run main.nf -profile test,docker -resume
+Jul-16 19:53:56.522 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.10.5
+Jul-16 19:53:56.554 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/nmahfel/.nextflow/plugins; core-plugins: nf-amazon@2.9.2,nf-azure@1.10.2,nf-cloudcache@0.4.2,nf-codecommit@0.2.2,nf-console@1.1.4,nf-google@1.15.4,nf-tower@1.9.3,nf-wave@1.7.4
+Jul-16 19:53:56.582 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Jul-16 19:53:56.583 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Jul-16 19:53:56.586 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Jul-16 19:53:56.605 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Jul-16 19:53:56.633 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config
+Jul-16 19:53:56.637 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config
+Jul-16 19:53:56.677 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/nmahfel/.nextflow/secrets/store.json
+Jul-16 19:53:56.681 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@3569edd5] - activable => nextflow.secret.LocalSecretsProvider@3569edd5
+Jul-16 19:53:56.690 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,docker`
+Jul-16 19:53:58.140 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [debug, test, apptainer, wave, docker, gitpod, shifter, mamba, charliecloud, conda, singularity, arm, podman]
+Jul-16 19:53:58.223 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 by global default
+Jul-16 19:53:58.255 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [condescending_varahamihira] DSL2 - revision: 680991f344
+Jul-16 19:53:58.256 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-schema@2.3.0]
+Jul-16 19:53:58.257 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Jul-16 19:53:58.257 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-schema@2.3.0]
+Jul-16 19:53:58.258 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-schema version: 2.3.0
+Jul-16 19:53:58.265 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-schema@2.3.0' resolved
+Jul-16 19:53:58.265 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-schema@2.3.0'
+Jul-16 19:53:58.283 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-schema@2.3.0
+Jul-16 19:53:58.352 [main] DEBUG nextflow.Session - Session UUID: 32dfc8ae-eb6c-4e3d-b05d-e91bf8b61304
+Jul-16 19:53:58.352 [main] DEBUG nextflow.Session - Run name: condescending_varahamihira
+Jul-16 19:53:58.353 [main] DEBUG nextflow.Session - Executor pool size: 20
+Jul-16 19:53:58.361 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Jul-16 19:53:58.369 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=60; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jul-16 19:53:58.405 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 24.10.5 build 5935
+  Created: 04-03-2025 17:55 UTC (17:55 BST)
+  System: Linux 5.15.167.4-microsoft-standard-WSL2
+  Runtime: Groovy 4.0.23 on OpenJDK 64-Bit Server VM 17.0.10+7
+  Encoding: UTF-8 (UTF-8)
+  Process: 23210@noram [127.0.1.1]
+  CPUs: 20 - Mem: 15.5 GB (10.8 GB) - Swap: 4 GB (4 GB)
+Jul-16 19:53:58.444 [main] DEBUG nextflow.Session - Work-dir: /home/nmahfel/nf-training/nf-core-nanoraredx/work [ext2/ext3]
+Jul-16 19:53:58.506 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Jul-16 19:53:58.523 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Jul-16 19:53:58.556 [main] DEBUG nextflow.Session - Observer factory: ValidationObserverFactory
+Jul-16 19:53:58.597 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Jul-16 19:53:58.610 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 21; maxThreads: 1000
+Jul-16 19:53:58.722 [main] DEBUG nextflow.Session - Session start
+Jul-16 19:53:58.726 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/nmahfel/nf-training/nf-core-nanoraredx/results/pipeline_info/execution_trace_2025-07-16_19-53-57.txt
+Jul-16 19:53:58.836 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Jul-16 19:54:02.524 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:generate_fai_subworkflow:SAMTOOLS_FAIDX
+Jul-16 19:54:02.541 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.542 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.549 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Jul-16 19:54:02.554 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=20; memory=15.5 GB; capacity=20; pollInterval=100ms; dumpInterval=5m
+Jul-16 19:54:02.557 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Jul-16 19:54:02.613 [main] INFO  nextflow.Nextflow - Sample name: test
+Jul-16 19:54:02.633 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE
+Jul-16 19:54:02.634 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SAMTOOLS_MERGE` matches process nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE
+Jul-16 19:54:02.640 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.640 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.662 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:samtools_bam_to_fastq_subworkflow:SAMTOOLS_FASTQ
+Jul-16 19:54:02.663 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SAMTOOLS_FASTQ` matches process nanoraredx:samtools_bam_to_fastq_subworkflow:SAMTOOLS_FASTQ
+Jul-16 19:54:02.668 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.668 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.681 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:minimap2_align_subworkflow:MINIMAP2_INDEX
+Jul-16 19:54:02.687 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.688 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.706 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_high` matches labels `process_high` for process with name nanoraredx:minimap2_align_subworkflow:MINIMAP2_ALIGN
+Jul-16 19:54:02.708 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MINIMAP2_ALIGN` matches process nanoraredx:minimap2_align_subworkflow:MINIMAP2_ALIGN
+Jul-16 19:54:02.711 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.711 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.753 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_STATS
+Jul-16 19:54:02.761 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.761 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.771 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_FLAGSTAT
+Jul-16 19:54:02.783 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.784 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.792 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_IDXSTATS
+Jul-16 19:54:02.795 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.795 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.814 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:nanoplot_subworkflow:NANOPLOT
+Jul-16 19:54:02.815 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:NANOPLOT` matches process nanoraredx:nanoplot_subworkflow:NANOPLOT
+Jul-16 19:54:02.818 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.818 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.848 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:mosdepth_subworkflow:MOSDEPTH
+Jul-16 19:54:02.851 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MOSDEPTH` matches process nanoraredx:mosdepth_subworkflow:MOSDEPTH
+Jul-16 19:54:02.859 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.859 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.891 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV
+Jul-16 19:54:02.892 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MOSDEPTH` matches process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV
+Jul-16 19:54:02.892 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MOSDEPTH_COV` matches process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV
+Jul-16 19:54:02.897 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.897 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.915 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_high` matches labels `process_high` for process with name nanoraredx:modkit_methyl_subworkflow:MODKIT_PILEUP
+Jul-16 19:54:02.916 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MODKIT_PILEUP` matches process nanoraredx:modkit_methyl_subworkflow:MODKIT_PILEUP
+Jul-16 19:54:02.920 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.920 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.937 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_high` matches labels `process_high` for process with name nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG
+Jul-16 19:54:02.938 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MODKIT_PILEUP` matches process nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG
+Jul-16 19:54:02.939 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:MODKIT_PILEUP_CPG` matches process nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG
+Jul-16 19:54:02.941 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.941 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.962 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:sniffles_sv_subworkflow:SNIFFLES
+Jul-16 19:54:02.963 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SNIFFLES` matches process nanoraredx:sniffles_sv_subworkflow:SNIFFLES
+Jul-16 19:54:02.965 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.966 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.975 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:sniffles_sv_subworkflow:GUNZIP_SNIFFLES
+Jul-16 19:54:02.976 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:GUNZIP_SNIFFLES` matches process nanoraredx:sniffles_sv_subworkflow:GUNZIP_SNIFFLES
+Jul-16 19:54:02.978 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.978 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:02.986 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:cutesv_sv_subworkflow:CUTESV
+Jul-16 19:54:02.987 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:CUTESV` matches process nanoraredx:cutesv_sv_subworkflow:CUTESV
+Jul-16 19:54:02.990 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:02.990 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.000 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:svim_sv_subworkflow:SVIM
+Jul-16 19:54:03.001 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SVIM` matches process nanoraredx:svim_sv_subworkflow:SVIM
+Jul-16 19:54:03.003 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.003 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.010 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:svim_sv_subworkflow:BCFTOOLS_SORT_SVIM
+Jul-16 19:54:03.011 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:BCFTOOLS_SORT_SVIM` matches process nanoraredx:svim_sv_subworkflow:BCFTOOLS_SORT_SVIM
+Jul-16 19:54:03.013 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.013 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.048 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_MERGE
+Jul-16 19:54:03.049 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SURVIVOR_MERGE` matches process nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_MERGE
+Jul-16 19:54:03.055 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.056 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.065 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_EXTRACT_INTERVALS
+Jul-16 19:54:03.065 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SURVIVOR_EXTRACT_INTERVALS` matches process nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_EXTRACT_INTERVALS
+Jul-16 19:54:03.068 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.068 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.097 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:multi_caller_sv_filter_subworkflow:BEDTOOLS_INTERSECT_SNIFFLES
+Jul-16 19:54:03.098 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:BEDTOOLS_INTERSECT_SNIFFLES` matches process nanoraredx:multi_caller_sv_filter_subworkflow:BEDTOOLS_INTERSECT_SNIFFLES
+Jul-16 19:54:03.101 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.101 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.124 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:low_coverage_sv_filter_subworkflow:FILTERBYCOV_SV
+Jul-16 19:54:03.125 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:FILTERBYCOV_SV` matches process nanoraredx:low_coverage_sv_filter_subworkflow:FILTERBYCOV_SV
+Jul-16 19:54:03.129 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.129 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.146 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_high` matches labels `process_high` for process with name nanoraredx:clair3_snv_subworkflow:CLAIR3
+Jul-16 19:54:03.147 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:CLAIR3` matches process nanoraredx:clair3_snv_subworkflow:CLAIR3
+Jul-16 19:54:03.154 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.155 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.175 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:clair3_snv_subworkflow:FIX_CLAIR3
+Jul-16 19:54:03.176 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:FIX_CLAIR3` matches process nanoraredx:clair3_snv_subworkflow:FIX_CLAIR3
+Jul-16 19:54:03.179 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.179 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.204 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:bcftools_filter_clair3_subworkflow:BCFTOOLS_FILTER_CLAIR3
+Jul-16 19:54:03.205 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:BCFTOOLS_FILTER_CLAIR3` matches process nanoraredx:bcftools_filter_clair3_subworkflow:BCFTOOLS_FILTER_CLAIR3
+Jul-16 19:54:03.207 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.208 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.227 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_high` matches labels `process_high` for process with name nanoraredx:deepvariant_snv_subworkflow:DEEPVARIANT_RUNDEEPVARIANT
+Jul-16 19:54:03.228 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:DEEPVARIANT_RUNDEEPVARIANT` matches process nanoraredx:deepvariant_snv_subworkflow:DEEPVARIANT_RUNDEEPVARIANT
+Jul-16 19:54:03.230 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.230 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.247 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:bcftools_filter_deepvariant_subworkflow:BCFTOOLS_FILTER_DEEPVARIANT
+Jul-16 19:54:03.249 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:BCFTOOLS_FILTER_DEEPVARIANT` matches process nanoraredx:bcftools_filter_deepvariant_subworkflow:BCFTOOLS_FILTER_DEEPVARIANT
+Jul-16 19:54:03.250 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.250 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.266 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:bcftools_concat_snv_subworkflow:BCFTOOLS_CONCAT_SNV
+Jul-16 19:54:03.267 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:BCFTOOLS_CONCAT_SNV` matches process nanoraredx:bcftools_concat_snv_subworkflow:BCFTOOLS_CONCAT_SNV
+Jul-16 19:54:03.269 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.269 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.285 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:longphase_subworkflow:LONGPHASE_PHASE
+Jul-16 19:54:03.286 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:LONGPHASE_PHASE` matches process nanoraredx:longphase_subworkflow:LONGPHASE_PHASE
+Jul-16 19:54:03.287 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.288 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.305 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:spectre_cnv_subworkflow:SPECTRE
+Jul-16 19:54:03.306 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SPECTRE` matches process nanoraredx:spectre_cnv_subworkflow:SPECTRE
+Jul-16 19:54:03.309 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.309 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.324 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_single` matches labels `process_single` for process with name nanoraredx:round_dp_spectre_subworkflow:ROUND_DP
+Jul-16 19:54:03.324 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:ROUND_DP` matches process nanoraredx:round_dp_spectre_subworkflow:ROUND_DP
+Jul-16 19:54:03.328 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.328 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.337 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_medium` matches labels `process_medium` for process with name nanoraredx:straglr_str_subworkflow:STRAGLR
+Jul-16 19:54:03.338 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:STRAGLR` matches process nanoraredx:straglr_str_subworkflow:STRAGLR
+Jul-16 19:54:03.340 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.340 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.359 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name nanoraredx:unify_vcf_subworkflow:UNIFYVCF
+Jul-16 19:54:03.360 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:UNIFYVCF` matches process nanoraredx:unify_vcf_subworkflow:UNIFYVCF
+Jul-16 19:54:03.362 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jul-16 19:54:03.362 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jul-16 19:54:03.369 [main] DEBUG nextflow.Session - Config process names validation disabled as requested
+Jul-16 19:54:03.373 [main] DEBUG nextflow.Session - Igniting dataflow network (63)
+Jul-16 19:54:03.382 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:generate_fai_subworkflow:SAMTOOLS_FAIDX
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:samtools_bam_to_fastq_subworkflow:SAMTOOLS_FASTQ
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:minimap2_align_subworkflow:MINIMAP2_INDEX
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:minimap2_align_subworkflow:MINIMAP2_ALIGN
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_STATS
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_FLAGSTAT
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_IDXSTATS
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:nanoplot_subworkflow:NANOPLOT
+Jul-16 19:54:03.384 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:mosdepth_subworkflow:MOSDEPTH
+Jul-16 19:54:03.385 [PathVisitor-2] DEBUG nextflow.file.PathVisitor - files for syntax: glob; folder: /home/nmahfel/nf-training/nf-core-nanoraredx/assets/test_data/bam_pass/; pattern: *.bam; options: [:]
+Jul-16 19:54:03.385 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV
+Jul-16 19:54:03.387 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:modkit_methyl_subworkflow:MODKIT_PILEUP
+Jul-16 19:54:03.387 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG
+Jul-16 19:54:03.387 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:sniffles_sv_subworkflow:SNIFFLES
+Jul-16 19:54:03.388 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:sniffles_sv_subworkflow:GUNZIP_SNIFFLES
+Jul-16 19:54:03.390 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:cutesv_sv_subworkflow:CUTESV
+Jul-16 19:54:03.390 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:svim_sv_subworkflow:SVIM
+Jul-16 19:54:03.390 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:svim_sv_subworkflow:BCFTOOLS_SORT_SVIM
+Jul-16 19:54:03.391 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_MERGE
+Jul-16 19:54:03.391 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_EXTRACT_INTERVALS
+Jul-16 19:54:03.391 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:multi_caller_sv_filter_subworkflow:BEDTOOLS_INTERSECT_SNIFFLES
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:low_coverage_sv_filter_subworkflow:FILTERBYCOV_SV
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:clair3_snv_subworkflow:CLAIR3
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:clair3_snv_subworkflow:FIX_CLAIR3
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:bcftools_filter_clair3_subworkflow:BCFTOOLS_FILTER_CLAIR3
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:deepvariant_snv_subworkflow:DEEPVARIANT_RUNDEEPVARIANT
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:bcftools_filter_deepvariant_subworkflow:BCFTOOLS_FILTER_DEEPVARIANT
+Jul-16 19:54:03.392 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:bcftools_concat_snv_subworkflow:BCFTOOLS_CONCAT_SNV
+Jul-16 19:54:03.393 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:longphase_subworkflow:LONGPHASE_PHASE
+Jul-16 19:54:03.394 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:spectre_cnv_subworkflow:SPECTRE
+Jul-16 19:54:03.394 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:round_dp_spectre_subworkflow:ROUND_DP
+Jul-16 19:54:03.394 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:straglr_str_subworkflow:STRAGLR
+Jul-16 19:54:03.395 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > nanoraredx:unify_vcf_subworkflow:UNIFYVCF
+Jul-16 19:54:03.400 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_d3865926248d0c08: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/nf-core/bam_stats_samtools/../../../modules/nf-core/samtools/stats/main.nf
+  Script_31973f0b0b74cb5a: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/generate_fai.nf
+  Script_aed934b6f17e9057: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/unify_vcf.nf
+  Script_65e15da743f4971d: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/samtools_index.nf
+  Script_cdbce3e23a8f89e8: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/nf-core/bam_stats_samtools/main.nf
+  Script_fca40ac1e74ae675: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/bcftools/concat/main.nf
+  Script_7f479d8122af88f8: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/nanoplot/main.nf
+  Script_a780234b47eb3af3: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/gunzip/main.nf
+  Script_8f73dd2ad401d88d: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/bcftools_concat_snv.nf
+  Script_6e39a214c72276e8: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/deepvariant/rundeepvariant/main.nf
+  Script_3ff1656b1d66c1f2: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/samtools/index/main.nf
+  Script_ac828cdfe398b938: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/qdnaseq/main.nf
+  Script_ffad8bafd7ab7279: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/sniffles/main.nf
+  Script_ee296bb5d37c30f5: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/modkit_methyl.nf
+  Script_33af114276ba6f6f: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/cutesv/main.nf
+  Script_e3bc58084c78a738: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/tabix/bgziptabix/main.nf
+  Script_210524191efe28d1: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/longphase.nf
+  Script_1e95cd1f528b08b1: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/spectre/main.nf
+  Script_2cd3960e599fb6c8: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/nf-core/bam_stats_samtools/../../../modules/nf-core/samtools/idxstats/main.nf
+  Script_0d22ccc9a0579992: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/samtools/faidx/main.nf
+  Script_96447b583c44a236: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/unifyvcf_geneyx/main.nf
+  Script_16a12be31ef35d69: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/minimap2_align.nf
+  Script_b3e6591fc18588ec: /home/nmahfel/nf-training/nf-core-nanoraredx/main.nf
+  Script_a7bd53b425969b91: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/low_coverage_sv_filter.nf
+  Script_1e4574621936be04: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/clair3_snv.nf
+  Script_9444c9672b28643d: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/bcftools/sort/main.nf
+  Script_6b1dd11dbe5765be: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/qdnaseq_cnv.nf
+  Script_9560a69bfe95655c: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/modkit/pileup/main.nf
+  Script_bd2a589c32fdc6b5: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/mosdepth/main.nf
+  Script_2890c5dc5978f3e3: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/round_dp_spectre.nf
+  Script_8c6cd303ae812c8b: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/minimap2/align/main.nf
+  Script_23c6d0afd087f6b1: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/sniffles_sv.nf
+  Script_a48f3f448ce7c60f: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/multi_caller_sv_filter.nf
+  Script_3643ac27465d1c99: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/mosdepth.nf
+  Script_5a47b158ea07ebdc: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/fix_clair3_vcf/main.nf
+  Script_7a5b6498f427fbca: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/longphase/phase/main.nf
+  Script_075575d97df95cc2: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/bcftools_filter_deepvariant.nf
+  Script_1be9a094969b7074: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/svim_sv.nf
+  Script_3448e763138df75c: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/bcftools/view/main.nf
+  Script_ccad1ab6a0a11e3a: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/round_dp/main.nf
+  Script_c5b4d78f9bd1b62e: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/spectre_cnv.nf
+  Script_1f330b845d5fe675: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/bcftools_filter_clair3.nf
+  Script_7ae0751c8b606714: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/filterbycov_sv/main.nf
+  Script_40116f323c6ad0c6: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/minimap2/index/main.nf
+  Script_ad3cd4f4d98d2267: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/bedtools/intersect/main.nf
+  Script_911eb6f800c6f9e0: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/straglr_str.nf
+  Script_542c05c1db041d73: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/extract_survivor_bed/main.nf
+  Script_498db87a6d4f03d8: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/nf-core/bam_stats_samtools/../../../modules/nf-core/samtools/flagstat/main.nf
+  Script_c669953382afcf2a: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/nanoraredx.nf
+  Script_e4206d7e36a008df: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/svim/main.nf
+  Script_e5fccee2ba9a7b56: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/samtools/merge/main.nf
+  Script_51d9ff7e90246c89: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/modkit_cpg.nf
+  Script_6a9072f6207e1081: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/cutesv_sv.nf
+  Script_813c64526aab47f1: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/deepvariant_snv.nf
+  Script_5ad333973f64e3d3: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/samtools_bam_to_fastq.nf
+  Script_c1c285041f6f5879: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/clair3/main.nf
+  Script_e8cf8a7d107e19bf: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/nanoplot.nf
+  Script_92cb26cdd0e91da1: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/samtools/fastq/main.nf
+  Script_a6a2f551dfa77de4: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/samtools_merge_bam.nf
+  Script_f5529c24ecadf406: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/nf-core/survivor/merge/main.nf
+  Script_f2a649c2399899eb: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/../../modules/local/straglr/main.nf
+  Script_5edd510a1cd62f1c: /home/nmahfel/nf-training/nf-core-nanoraredx/./workflows/../subworkflows/local/mosdepth_cov_analysis.nf
+Jul-16 19:54:03.400 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Jul-16 19:54:03.400 [main] DEBUG nextflow.Session - Session await
+Jul-16 19:54:03.403 [PathVisitor-3] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-amazon version: 2.9.2
+Jul-16 19:54:03.412 [PathVisitor-3] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-amazon@2.9.2' resolved
+Jul-16 19:54:03.412 [PathVisitor-3] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-amazon@2.9.2'
+Jul-16 19:54:03.544 [PathVisitor-3] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-amazon@2.9.2
+Jul-16 19:54:03.572 [PathVisitor-3] DEBUG nextflow.file.FileHelper - > Added 'S3FileSystemProvider' to list of installed providers [s3]
+Jul-16 19:54:03.573 [PathVisitor-3] DEBUG nextflow.file.FileHelper - Started plugin 'nf-amazon' required to handle file: s3://ngi-igenomes/igenomes/Homo_sapiens/NCBI/GRCh38/Sequence/WholeGenomeFasta/genome.fa
+Jul-16 19:54:03.581 [PathVisitor-3] DEBUG nextflow.file.FileHelper - Creating a file system instance for provider: S3FileSystemProvider
+Jul-16 19:54:03.599 [PathVisitor-3] DEBUG nextflow.cloud.aws.config.AwsConfig - AWS S3 config properties: {max_error_retry=5}
+Jul-16 19:54:03.644 [Actor Thread 11] DEBUG nextflow.processor.TaskProcessor - Process `nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE (1)` is unable to find [UnixPath]: `/home/nmahfel/nf-training/nf-core-nanoraredx/work/78/ab70127b7104730bd5e606696f6cb5/test.cram` (pattern: `test.cram`)
+Jul-16 19:54:03.655 [Actor Thread 11] INFO  nextflow.processor.TaskProcessor - [78/ab7012] Cached process > nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE (test)
+Jul-16 19:54:03.655 [Actor Thread 21] INFO  nextflow.processor.TaskProcessor - [d5/68f7d3] Cached process > nanoraredx:minimap2_align_subworkflow:MINIMAP2_INDEX (1)
+Jul-16 19:54:03.656 [Actor Thread 16] INFO  nextflow.processor.TaskProcessor - [bc/e63fea] Cached process > nanoraredx:generate_fai_subworkflow:SAMTOOLS_FAIDX (genome_22.fasta)
+Jul-16 19:54:03.709 [Actor Thread 21] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'PublishDir' minSize=10; maxSize=60; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jul-16 19:54:03.806 [Actor Thread 11] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Jul-16 19:54:03.806 [Actor Thread 16] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:generate_fai_subworkflow:SAMTOOLS_FAIDX > Skipping output binding because one or more optional files are missing: fileoutparam<0:1>
+Jul-16 19:54:03.807 [Actor Thread 11] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:03.807 [Actor Thread 11] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:samtools_merge_bam_subworkflow:SAMTOOLS_MERGE > Skipping output binding because one or more optional files are missing: fileoutparam<3:1>
+Jul-16 19:54:03.807 [Actor Thread 16] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:generate_fai_subworkflow:SAMTOOLS_FAIDX > Skipping output binding because one or more optional files are missing: fileoutparam<3:1>
+Jul-16 19:54:03.867 [Actor Thread 12] INFO  nextflow.processor.TaskProcessor - [6e/7aeb61] Cached process > nanoraredx:samtools_bam_to_fastq_subworkflow:SAMTOOLS_FASTQ (test)
+Jul-16 19:54:03.875 [Actor Thread 12] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:samtools_bam_to_fastq_subworkflow:SAMTOOLS_FASTQ > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Jul-16 19:54:03.912 [Actor Thread 19] INFO  nextflow.processor.TaskProcessor - [d9/3678bc] Cached process > nanoraredx:minimap2_align_subworkflow:MINIMAP2_ALIGN (test)
+Jul-16 19:54:03.917 [Actor Thread 17] INFO  nextflow.processor.TaskProcessor - [b9/979c13] Cached process > nanoraredx:nanoplot_subworkflow:NANOPLOT (test)
+Jul-16 19:54:03.917 [Actor Thread 19] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:minimap2_align_subworkflow:MINIMAP2_ALIGN > Skipping output binding because one or more optional files are missing: fileoutparam<0:1>
+Jul-16 19:54:03.960 [Actor Thread 7] INFO  nextflow.processor.TaskProcessor - [ad/c75594] Cached process > nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_IDXSTATS (test)
+Jul-16 19:54:03.960 [Actor Thread 26] INFO  nextflow.processor.TaskProcessor - [a7/ab67d5] Cached process > nanoraredx:svim_sv_subworkflow:SVIM (test)
+Jul-16 19:54:03.960 [Actor Thread 24] INFO  nextflow.processor.TaskProcessor - [0b/e70fcf] Cached process > nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_FLAGSTAT (test)
+Jul-16 19:54:03.963 [Actor Thread 8] INFO  nextflow.processor.TaskProcessor - [7c/8ce932] Cached process > nanoraredx:modkit_methyl_subworkflow:MODKIT_PILEUP (test)
+Jul-16 19:54:03.964 [Actor Thread 22] INFO  nextflow.processor.TaskProcessor - [87/c0502a] Cached process > nanoraredx:sniffles_sv_subworkflow:SNIFFLES (test)
+Jul-16 19:54:03.966 [Actor Thread 8] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:modkit_methyl_subworkflow:MODKIT_PILEUP > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Jul-16 19:54:03.966 [Actor Thread 8] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:modkit_methyl_subworkflow:MODKIT_PILEUP > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:03.968 [Actor Thread 9] INFO  nextflow.processor.TaskProcessor - [f7/774199] Cached process > nanoraredx:straglr_str_subworkflow:STRAGLR (test)
+Jul-16 19:54:03.979 [Actor Thread 4] INFO  nextflow.processor.TaskProcessor - [2a/4816ba] Cached process > nanoraredx:cutesv_sv_subworkflow:CUTESV (test)
+Jul-16 19:54:03.979 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [48/ac75fc] Cached process > nanoraredx:BAM_STATS_SAMTOOLS:SAMTOOLS_STATS (test)
+Jul-16 19:54:03.985 [Actor Thread 27] INFO  nextflow.processor.TaskProcessor - [e1/004e63] Cached process > nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG (test)
+Jul-16 19:54:03.986 [Actor Thread 30] INFO  nextflow.processor.TaskProcessor - [2e/965dd9] Cached process > nanoraredx:deepvariant_snv_subworkflow:DEEPVARIANT_RUNDEEPVARIANT (test)
+Jul-16 19:54:03.987 [Actor Thread 18] INFO  nextflow.processor.TaskProcessor - [d1/4aacee] Cached process > nanoraredx:mosdepth_subworkflow:MOSDEPTH (test)
+Jul-16 19:54:03.988 [Actor Thread 19] INFO  nextflow.processor.TaskProcessor - [80/60168f] Cached process > nanoraredx:sniffles_sv_subworkflow:GUNZIP_SNIFFLES (test_sniffles.vcf.gz)
+Jul-16 19:54:03.990 [Actor Thread 23] INFO  nextflow.processor.TaskProcessor - [e0/e4877e] Cached process > nanoraredx:clair3_snv_subworkflow:CLAIR3 (test)
+Jul-16 19:54:03.996 [Actor Thread 32] INFO  nextflow.processor.TaskProcessor - [ed/72eeee] Cached process > nanoraredx:svim_sv_subworkflow:BCFTOOLS_SORT_SVIM (test)
+Jul-16 19:54:03.998 [Actor Thread 27] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Jul-16 19:54:03.998 [Actor Thread 27] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:modkit_cpg_subworkflow:MODKIT_PILEUP_CPG > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:04.002 [Actor Thread 18] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_subworkflow:MOSDEPTH > Skipping output binding because one or more optional files are missing: fileoutparam<3:1>
+Jul-16 19:54:04.002 [Actor Thread 18] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_subworkflow:MOSDEPTH > Skipping output binding because one or more optional files are missing: fileoutparam<8:1>
+Jul-16 19:54:04.002 [Actor Thread 18] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_subworkflow:MOSDEPTH > Skipping output binding because one or more optional files are missing: fileoutparam<9:1>
+Jul-16 19:54:04.003 [Actor Thread 18] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_subworkflow:MOSDEPTH > Skipping output binding because one or more optional files are missing: fileoutparam<10:1>
+Jul-16 19:54:04.003 [Actor Thread 18] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_subworkflow:MOSDEPTH > Skipping output binding because one or more optional files are missing: fileoutparam<11:1>
+Jul-16 19:54:04.003 [Actor Thread 20] INFO  nextflow.processor.TaskProcessor - [24/9c0bdf] Cached process > nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV (test)
+Jul-16 19:54:04.005 [Actor Thread 32] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:svim_sv_subworkflow:BCFTOOLS_SORT_SVIM > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Jul-16 19:54:04.005 [Actor Thread 32] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:svim_sv_subworkflow:BCFTOOLS_SORT_SVIM > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:04.006 [Actor Thread 23] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:clair3_snv_subworkflow:CLAIR3 > Skipping output binding because one or more optional files are missing: fileoutparam<6:1>
+Jul-16 19:54:04.006 [Actor Thread 23] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:clair3_snv_subworkflow:CLAIR3 > Skipping output binding because one or more optional files are missing: fileoutparam<7:1>
+Jul-16 19:54:04.007 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:04.008 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<3:1>
+Jul-16 19:54:04.009 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<4:1>
+Jul-16 19:54:04.009 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<5:1>
+Jul-16 19:54:04.009 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<6:1>
+Jul-16 19:54:04.009 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<7:1>
+Jul-16 19:54:04.010 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<10:1>
+Jul-16 19:54:04.010 [Actor Thread 20] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:mosdepth_cov_analysis_subworkflow:MOSDEPTH_COV > Skipping output binding because one or more optional files are missing: fileoutparam<11:1>
+Jul-16 19:54:04.025 [Actor Thread 22] INFO  nextflow.processor.TaskProcessor - [5e/c530ce] Cached process > nanoraredx:bcftools_filter_deepvariant_subworkflow:BCFTOOLS_FILTER_DEEPVARIANT (test)
+Jul-16 19:54:04.025 [Actor Thread 26] INFO  nextflow.processor.TaskProcessor - [28/62bde3] Cached process > nanoraredx:clair3_snv_subworkflow:FIX_CLAIR3 (test)
+Jul-16 19:54:04.028 [Actor Thread 22] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:bcftools_filter_deepvariant_subworkflow:BCFTOOLS_FILTER_DEEPVARIANT > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:04.033 [Actor Thread 30] INFO  nextflow.processor.TaskProcessor - [48/ff6cb0] Cached process > nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_MERGE (test)
+Jul-16 19:54:04.053 [Actor Thread 16] INFO  nextflow.processor.TaskProcessor - [58/a3a5ac] Cached process > nanoraredx:multi_caller_sv_filter_subworkflow:SURVIVOR_EXTRACT_INTERVALS (test)
+Jul-16 19:54:04.056 [Actor Thread 23] INFO  nextflow.processor.TaskProcessor - [ee/d909c2] Cached process > nanoraredx:bcftools_filter_clair3_subworkflow:BCFTOOLS_FILTER_CLAIR3 (test)
+Jul-16 19:54:04.059 [Actor Thread 23] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:bcftools_filter_clair3_subworkflow:BCFTOOLS_FILTER_CLAIR3 > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:04.081 [Actor Thread 26] INFO  nextflow.processor.TaskProcessor - [6a/6d4e6f] Cached process > nanoraredx:multi_caller_sv_filter_subworkflow:BEDTOOLS_INTERSECT_SNIFFLES (test)
+Jul-16 19:54:04.083 [Actor Thread 17] DEBUG nextflow.processor.TaskProcessor - Process `nanoraredx:bcftools_concat_snv_subworkflow:BCFTOOLS_CONCAT_SNV (1)` is unable to find [UnixPath]: `/home/nmahfel/nf-training/nf-core-nanoraredx/work/1f/261852b0c8f115bc62f670eebc2783/test_SNV_unify.vcf.gz.csi` (pattern: `test_SNV_unify.vcf.gz.csi`)
+Jul-16 19:54:04.085 [Actor Thread 17] INFO  nextflow.processor.TaskProcessor - [1f/261852] Cached process > nanoraredx:bcftools_concat_snv_subworkflow:BCFTOOLS_CONCAT_SNV (test)
+Jul-16 19:54:04.088 [Actor Thread 17] DEBUG nextflow.processor.TaskProcessor - Process nanoraredx:bcftools_concat_snv_subworkflow:BCFTOOLS_CONCAT_SNV > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Jul-16 19:54:04.114 [Actor Thread 30] INFO  nextflow.processor.TaskProcessor - [fb/b1ae52] Cached process > nanoraredx:low_coverage_sv_filter_subworkflow:FILTERBYCOV_SV (test)
+Jul-16 19:54:04.145 [Actor Thread 20] INFO  nextflow.processor.TaskProcessor - [af/6fafa2] Cached process > nanoraredx:longphase_subworkflow:LONGPHASE_PHASE (test)
+Jul-16 19:54:06.529 [PathVisitor-3] DEBUG n.c.aws.util.S3CredentialsProvider - No AWS credentials available - falling back to anonymous access
+Jul-16 19:54:07.277 [FileTransfer-1] DEBUG nextflow.file.FilePorter - Local cache found for foreign file s3://ngi-igenomes/igenomes/Homo_sapiens/NCBI/GRCh38/Sequence/WholeGenomeFasta/genome.fa at /home/nmahfel/nf-training/nf-core-nanoraredx/work/stage-32dfc8ae-eb6c-4e3d-b05d-e91bf8b61304/a9/649c48f8ad8d534384121c30337f1e/genome.fa
+Jul-16 19:54:07.291 [Actor Thread 20] INFO  nextflow.processor.TaskProcessor - [68/57e124] Cached process > nanoraredx:spectre_cnv_subworkflow:SPECTRE (test)
+Jul-16 19:54:07.304 [Actor Thread 32] INFO  nextflow.processor.TaskProcessor - [10/1fcc96] Cached process > nanoraredx:round_dp_spectre_subworkflow:ROUND_DP (test)
+Jul-16 19:54:07.318 [Actor Thread 30] INFO  nextflow.processor.TaskProcessor - [fb/357018] Cached process > nanoraredx:unify_vcf_subworkflow:UNIFYVCF (test)
+Jul-16 19:54:07.321 [main] DEBUG nextflow.Session - Session await > all processes finished
+Jul-16 19:54:07.379 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Jul-16 19:54:07.380 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Jul-16 19:54:07.383 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'PublishDir' shutdown completed (hard=false)
+Jul-16 19:54:07.388 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=0; ignoredCount=0; cachedCount=33; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=11m 19s;loadCpus=0; loadMemory=0; peakRunning=0; peakCpus=0; peakMemory=0; ]
+Jul-16 19:54:07.388 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
+Jul-16 19:54:07.389 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Jul-16 19:54:07.983 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Jul-16 19:54:08.217 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Jul-16 19:54:08.231 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-amazon@2.9.2'
+Jul-16 19:54:08.231 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-amazon
+Jul-16 19:54:08.231 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-schema@2.3.0'
+Jul-16 19:54:08.231 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-schema
+Jul-16 19:54:08.232 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'FileTransfer' shutdown completed (hard=false)
+Jul-16 19:54:08.233 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
