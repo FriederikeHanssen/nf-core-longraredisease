@@ -1,4 +1,5 @@
 # nf-core_LRS_RD
 Long read sequencing pipeline to identify variants in patients with neurodevelopmental disorders 
-![LRS pipeline](https://github.com/user-attachments/assets/17f50dde-1e34-4d2d-a9ac-8c6805055c9c)
+
+<img width="1866" height="867" alt="nanoraredx" src="https://github.com/user-attachments/assets/bdba26de-5e62-4d2e-a180-d293d45b4be4" />
 
