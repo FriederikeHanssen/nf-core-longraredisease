@@ -57,3 +57,4 @@ workflow minimap2_align_subworkflow {
     ch_sorted_bam
     ch_sorted_bai
 }
+

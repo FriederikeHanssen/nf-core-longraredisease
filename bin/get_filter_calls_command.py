@@ -4,6 +4,7 @@
 import argparse
 import sys
 import subprocess
+import logging
 
 threshold_lookup = ['0'] + ['2'] * 10 + ['3'] * 9 + ['5'] * 20 + ['8'] * 100
 
@@ -152,49 +153,70 @@ def parse_arguments():
 
 def main():
     """Run the entry point."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(levelname)s] %(message)s'
+    )
+
     args = parse_arguments()
 
+    logging.info(f"Input VCF: {args.vcf}")
+    logging.info(f"Read support setting: {args.min_read_support}")
+    logging.info(f"Read support limit: {args.min_read_support_limit}")
+    
     # Detect or use provided support field
     support_field = args.support_field
     if not support_field:
         support_field = detect_support_field(args.vcf)
-    
+        logging.info(f"Auto-detected support field: {support_field}")
+    else:
+        logging.info(f"Using user-specified support field: {support_field}")
+
     if not support_field:
-        print("Error: Could not detect support field in VCF. Please specify --support_field manually.", file=sys.stderr)
+        logging.error("Could not detect support field in VCF. Please specify --support_field manually.")
         sys.exit(1)
 
-    # Get min read support filter
+    # Determine read support threshold
     min_read_support = args.min_read_support_limit
-    if args.min_read_support in ['auto']:
+    if args.min_read_support == 'auto':
         avg_depth = import_total_depth(args.depth_summary)
-        avg_depth = min(avg_depth, len(threshold_lookup) - 1) \
-            if avg_depth else len(threshold_lookup) - 1
+        if avg_depth is None:
+            logging.warning("Could not extract average depth. Defaulting to upper threshold.")
+            avg_depth = len(threshold_lookup) - 1
+        else:
+            logging.info(f"Extracted average depth: {avg_depth:.2f}")
+        
         detected_read_support = int(threshold_lookup[round(avg_depth)])
+        logging.info(f"Detected read support from lookup: {detected_read_support}")
 
         if detected_read_support > args.min_read_support_limit:
             min_read_support = detected_read_support
+        else:
+            logging.info(f"Detected threshold below limit. Using min_read_support_limit: {args.min_read_support_limit}")
+
+    logging.info(f"Final minimum read support threshold: {min_read_support}")
 
     filter_min_read_support = f'INFO/{support_field} >= {min_read_support}'
-
-    # Now, make string
     filter_string = f"-i '{filter_min_read_support}'"
 
-    # Add target_bed filter (optional)
+    # Add optional filters
     if args.target_bedfile:
         filter_string = f"-T {args.target_bedfile} --targets-overlap 1 {filter_string}"
+        logging.info(f"Filtering within target regions from BED file: {args.target_bedfile}")
 
-    # Add list of contigs to keep
     if args.contigs:
         filter_string = f"{filter_string} -r {args.contigs} "
+        logging.info(f"Filtering by contigs: {args.contigs}")
 
-    # Filter for PASS variants if specified
     pass_filter = "-f PASS" if args.filter_pass else ""
+    logging.info(f"Applying PASS filter: {args.filter_pass}")
 
-    # Print command to stdout
     command = (
         f"bcftools view {pass_filter} --threads "
         f"{args.bcftools_threads} {filter_string} {args.vcf}"
-    ).strip()  # Remove extra spaces
+    ).strip()
+
+    logging.info(f"Final bcftools command: {command}")
     
     sys.stdout.write(command)
 

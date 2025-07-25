@@ -45,7 +45,8 @@ process DEEPVARIANT_RUNDEEPVARIANT {
         ${regions} \\
         ${par_regions} \\
         --intermediate_results_dir=tmp \\
-        --num_shards=${task.cpus}
+        --num_shards=${task.cpus} \\
+        --sample_name="${meta.id}" 
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

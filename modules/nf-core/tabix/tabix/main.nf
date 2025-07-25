@@ -21,7 +21,10 @@ process TABIX_TABIX {
     script:
     def args = task.ext.args ?: ''
     """
-    tabix -p vcf $tab
+    tabix \\
+        --threads $task.cpus \\
+        $args \\
+        $tab
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

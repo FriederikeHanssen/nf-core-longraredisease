@@ -19,7 +19,7 @@ process SPECTRE {
     tuple val(meta), path("*.bed.gz")        , emit: bed
     tuple val(meta), path("*.bed.gz.tbi")    , emit: bed_index
     tuple val(meta), path("*.spc.gz")        , emit: spc
-    // tuple val(meta), path("windows_stats")   , emit: winstats
+    tuple val(meta), path("img", type: 'dir'), emit: winstats
     path "versions.yml"                      , emit: versions
 
     when:

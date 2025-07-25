@@ -1,12 +1,12 @@
 
 process SNIFFLES {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_high'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/sniffles:2.4--pyhdfd78af_0' :
-        'biocontainers/sniffles:2.4--pyhdfd78af_0' }"
+        'biocontainers/sniffles:2.6.3--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(input), path(index)

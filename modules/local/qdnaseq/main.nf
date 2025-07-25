@@ -1,10 +1,8 @@
-process RUNQDNASEQ {
+process QDNASEQ {
     tag "$meta.id"
     label 'process_medium'
     
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'docker://docker.io/nourmahfel1/runqdnaseq:0.0.4' :
-        'docker.io/nourmahfel1/runqdnaseq:0.0.4' }"
+    container "docker.io/nourmahfel1/runqdnaseq:0.0.4"
 
     input:
     tuple val(meta), path(bam), path(bai)

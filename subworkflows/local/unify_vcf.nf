@@ -1,6 +1,7 @@
 // Unify multiple structural variant VCF files (SV, CNV, repeat)
 
 include { UNIFYVCF } from '../../modules/local/unifyvcf_geneyx/main'
+include {GUNZIP as GUNZIP_UNIFY} from '../../modules/nf-core/gunzip/main'
 
 workflow unify_vcf_subworkflow {
     
@@ -21,10 +22,16 @@ workflow unify_vcf_subworkflow {
         ch_repeat_vcf,
         modify_repeats
     )
+// Just for scientists to view it 
+    GUNZIP_UNIFY(
+        UNIFYVCF.out.unified_vcf
+    )
+
     ch_versions = ch_versions.mix(UNIFYVCF.out.versions)
     
     emit:
-    unified_vcf = UNIFYVCF.out.unified_vcf    // channel: [meta, unified.vcf]
+    unified_vcf = GUNZIP_UNIFY.out.gunzip // channel: [meta, unified.vcf.gz]
+    unified_vcf_gz = UNIFYVCF.out.unified_vcf    // channel: [meta, unified.vcf]
     unified_tbi = UNIFYVCF.out.unified_tbi    // channel: [meta, unified.vcf.tbi]
     versions    = ch_versions                   // channel: versions.yml
 }
