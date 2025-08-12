@@ -1,7 +1,7 @@
 // This workflow is for clair3
 
 include { CLAIR3 } from '../../modules/nf-core/clair3/main.nf'
-include { CLAIR3_FIX} from '../../modules/local/clair3_fix_vcf/main'
+include { CLAIR3_FIX} from '../../modules/local/clair3_fixVCF/main'
 include { DEEPVARIANT_RUNDEEPVARIANT } from '../../modules/nf-core/deepvariant/rundeepvariant/main.nf'
 include { BCFTOOLS_VIEW as BCFTOOLS_FILTER_CLAIR3 } from '../../modules/nf-core/bcftools/view/main.nf'
 include { BCFTOOLS_VIEW as BCFTOOLS_FILTER_DEEPVARIANT } from '../../modules/nf-core/bcftools/view/main.nf'

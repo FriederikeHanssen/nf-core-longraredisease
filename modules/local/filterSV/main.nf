@@ -54,7 +54,7 @@ process FILTERCOV_SV {
     AVG_DEPTH=\$(awk '\$1 == "total" {print \$4}' ${mosdepth_summary})
     
     # Generate filtering command with PASS filter option
-    get_filter_calls_command.py \\
+    filterSV.py \\
         --bcftools_threads ${task.cpus} \\
         --target_bedfile \$target_bed_arg \\
         --vcf \$input_vcf \\

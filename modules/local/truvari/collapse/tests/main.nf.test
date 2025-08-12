@@ -1,14 +1,14 @@
 nextflow_process {
 
-    name "Test Process TRUVARI_BENCH"
+    name "Test Process TRUVARI_COLLAPSE"
     
     script "../main.nf"
-    process "TRUVARI_BENCH"
+    process "TRUVARI_COLLAPSE"
    
     tag "modules"
     tag "modules_nfcore"
     tag "truvari"
-    tag "truvari/bench"
+    tag "truvari/collapse"
    
     test("without bed") {
 

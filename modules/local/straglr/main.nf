@@ -2,7 +2,6 @@ process STRAGLR {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "${moduleDir}/environment.yml"
     container "biocontainers/straglr:1.5.3--pyhdfd78af_0"
 
     input:

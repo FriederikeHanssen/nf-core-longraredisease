@@ -2,9 +2,7 @@ process SVANNA_PRIORITIZE {
     tag "$meta.id"
     label 'process_medium'
     
-    conda "bioconda::openjdk=11.0.1"
     container "docker.io/nourmahfel1/svanna:latest"
-    containerOptions "--entrypoint=''"
 
     input:
     tuple val(meta), path(vcf)
@@ -33,23 +31,7 @@ process SVANNA_PRIORITIZE {
     def output_formats = task.ext.output_format ?: 'html'
     
     """
-    # Check if svanna database exists
-    if [ ! -d "${data_directory}" ]; then
-        echo "Error: SvAnna database directory not found: ${data_directory}"
-        exit 1
-    fi
-    
-    # Find the SvAnna JAR file
-    SVANNA_JAR=\$(find /app -name "*.jar" | head -1)
-    if [ -z "\$SVANNA_JAR" ]; then
-        echo "Error: SvAnna JAR file not found in /app"
-        exit 1
-    fi
-    
-    echo "Using SvAnna JAR: \$SVANNA_JAR"
-    
-    # Run SvAnna prioritize with explicit java command
-    java -jar \$SVANNA_JAR prioritize \\
+    java -jar /app/svanna-cli.jar prioritize \\
         --data-directory ${data_directory} \\
         --output-format ${output_formats} \\
         --vcf ${vcf} \\
@@ -61,7 +43,7 @@ process SVANNA_PRIORITIZE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        svanna: \$(java -jar \$SVANNA_JAR --version 2>&1 | head -n1 | sed 's/.*SvAnna //' | sed 's/ .*//' || echo "unknown")
+        svanna: \$(java -jar /app/svanna-cli.jar --version 2>&1 | head -n1 | sed 's/.*v//' | sed 's/ .*//' || echo "1.0.4")
         java: \$(java -version 2>&1 | head -n1 | sed 's/.*version "//' | sed 's/".*//')
     END_VERSIONS
     """
@@ -84,7 +66,7 @@ process SVANNA_PRIORITIZE {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         svanna: "1.0.4"
-        java: "11.0.1"
+        java: "17.0.12"
     END_VERSIONS
     """
 }

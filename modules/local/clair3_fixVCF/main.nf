@@ -2,7 +2,6 @@ process CLAIR3_FIX {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "${moduleDir}/environment.yml"
     container "community.wave.seqera.io/library/bcftools_pip_confargparse:4f3c18aa8341a070"
 
     input:

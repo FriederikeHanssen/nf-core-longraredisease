@@ -1,4 +1,4 @@
-name: "truvari_bench"
+name: "truvari_collapse"
 description: Given baseline and comparison sets of variants, calculate the recall/precision/f-measure
 keywords:
   - structural variants

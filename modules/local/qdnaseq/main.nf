@@ -1,7 +1,8 @@
 process QDNASEQ {
     tag "$meta.id"
-    label 'process_medium'
-    
+    label 'process_high'
+
+    conda "${moduleDir}/environment.yml"
     container "docker.io/nourmahfel1/runqdnaseq:0.0.4"
 
     input:

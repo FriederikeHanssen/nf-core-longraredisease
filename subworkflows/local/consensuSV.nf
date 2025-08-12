@@ -1,60 +1,65 @@
-include { SURVIVOR_MERGE                          } from '../../modules/nf-core/survivor/merge/main.nf'
-include { SURVIVOR_FIX                            } from '../../modules/local/survivor_fix_vcf/main.nf'
-include { BCFTOOLS_SORT as BCFTOOLS_SORT_SV       } from '../../modules/nf-core/bcftools/sort/main.nf'
-include {TABIX_BGZIPTABIX as BGZIP_SV             } from '../../modules/nf-core/tabix/bgziptabix/main.nf'
-// include { BCFTOOLS_MERGE as BCFTOOLS_MERGE_SV     }   from '../../modules/nf-core/bcftools/merge/main.nf'
-// include { TRUVARI_COLLAPSE                        } from '../../modules/local/truvari/collapse/main.nf'
-// include { BEDTOOLS_INTERSECT as BEDTOOLS_INTERSECT_SV } from '../../modules/nf-core/bedtools/intersect/main.nf'
-// include { BCFTOOLS_NORM                              } from '../../modules/nf-core/bcftools/norm/main'    
+include { SURVIVOR_MERGE                         } from '../../modules/nf-core/survivor/merge/main.nf'
+include { SURVIVOR_FIX                            } from '../../modules/local/consensuSV/survivor_fixVCF/main.nf'
+include { EXTRACT_BED                       } from '../../modules/local/consensuSV/extract_bed/main.nf'
+include { BCFTOOLS_MERGE  as BCFTOOLS_MERGE_SV    } from '../../modules/nf-core/bcftools/merge/main.nf'
+include { TABIX_BGZIPTABIX as BGZIP_CONSENSUSV      } from '../../modules/nf-core/tabix/bgziptabix/main.nf'
+include { TRUVARI_COLLAPSE                        } from '../../modules/local/truvari/collapse/main.nf'
+include { MERGE_SURV_TRUVARI                 } from '../../modules/local/consensuSV/merge_surv_truvari/main.nf'
 
 
-// change the naming to bgziptabix sv
 workflow consensuSV_subworkflow {
-
     take:
     survivor_vcfs        // Channel: tuple(meta, List[VCF file]) 
-    max_dist             // int
-    min_callers          // int
-    type_flag            // int
-    strand_flag          // int
-    est_dist             // int
-    min_size             // int
+    bcftools_vcfs       // Channel: tuple(meta, List[VCF.gz file], List[TBI file])
 
     main:
+    ch_versions = Channel.empty()
 
-    // Ensure the input channel is properly structured for SURVIVOR_MERGE
-    ch_vcf_input = survivor_vcfs
-        .map { meta, files ->
-            // Make sure files is a list and meta is properly structured
-            tuple(meta, files)
-        }
-
+    // Step 1: Run SURVIVOR_MERGE
     SURVIVOR_MERGE(
-        ch_vcf_input,
-        max_dist,
-        min_callers,
-        type_flag,
-        strand_flag,
-        est_dist,
-        min_size
+        survivor_vcfs,
+        params.max_distance_breakpoints ?: 1000,
+        params.min_supporting_callers ?: 2,
+        params.account_for_type ?: true,
+        params.account_for_sv_strands ?: true,
+        params.estimate_distanced_by_sv_size ?: false,
+        params.min_sv_size ?: 30
+    )
+    SURVIVOR_FIX(SURVIVOR_MERGE.out.vcf) 
+    EXTRACT_BED(SURVIVOR_FIX.out.vcf)
+
+    ch_versions = ch_versions.mix(SURVIVOR_MERGE.out.versions)
+
+    // Step 3: bcftools merge
+    BCFTOOLS_MERGE_SV(
+        bcftools_vcfs,
+        [[:], []],
+        [[:], []],
+        [[:], []]
     )
 
-    
-    SURVIVOR_FIX(SURVIVOR_MERGE.out.vcf) 
+    BGZIP_CONSENSUSV(BCFTOOLS_MERGE_SV.out.vcf)
+    ch_versions = ch_versions.mix(BCFTOOLS_MERGE_SV.out.versions)
 
-    BCFTOOLS_SORT_SV(SURVIVOR_FIX.out.vcf)
-    BGZIP_SV(BCFTOOLS_SORT_SV.out.vcf)
+    // TRUVARI_COLLAPSE
+    TRUVARI_COLLAPSE(
+        BGZIP_CONSENSUSV.out.gz_tbi, 
+        params.refdist, 
+        params.pctsim, 
+        params.pctseq,
+        params.passonly, 
+        params.dup_to_ins
+    )
+    ch_versions = ch_versions.mix(TRUVARI_COLLAPSE.out.versions)
 
-    ch_vcf_gz = BGZIP_SV.out.gz_tbi
-            .map { meta, vcf_gz, tbi -> 
-                tuple(meta, vcf_gz) 
-            }
 
-        
+
+    MERGE_SURV_TRUVARI(
+        TRUVARI_COLLAPSE.out.merged_vcf,
+        EXTRACT_BED.out.bed
+    )
 
     emit:
-    vcf             = BCFTOOLS_SORT_SV.out.vcf // channel: [meta, vcf]
-    vcf_gz          = ch_vcf_gz // channel: [meta, vcf.gz]
-    versions        = SURVIVOR_MERGE.out.versions
-
+    vcf = MERGE_SURV_TRUVARI.out.vcf
+    versions = ch_versions
 }

@@ -1,8 +1,7 @@
 process UNIFYVCF {
     tag "$meta.id"
     label 'process_low'
-    
-    conda "${moduleDir}/environment.yml"
+
     container "community.wave.seqera.io/library/htslib_procs_python:4c242671a1021f9c"
 
     input:

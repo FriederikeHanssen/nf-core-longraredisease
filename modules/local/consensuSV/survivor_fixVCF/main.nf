@@ -22,7 +22,7 @@ process SURVIVOR_FIX {
     def prefix = task.ext.prefix ?: "${meta.id}"
     
     """
-    fix_survivor.py \\
+    survivor_fixVCF.py \\
         $vcf \\
         ${prefix}.vcf \\
         $args

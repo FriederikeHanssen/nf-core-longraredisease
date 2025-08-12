@@ -9,7 +9,7 @@ process BCFTOOLS_NORM {
 
     input:
     tuple val(meta), path(vcf), path(tbi)
-    tuple val(meta2), path(fasta)
+    // tuple val(meta2), path(fasta)
 
     output:
     tuple val(meta), path("*.{vcf,vcf.gz,bcf,bcf.gz}"), emit: vcf
@@ -31,7 +31,6 @@ process BCFTOOLS_NORM {
 
     """
     bcftools norm \\
-        --fasta-ref ${fasta} \\
         --output ${prefix}.${extension} \\
         $args \\
         --threads $task.cpus \\

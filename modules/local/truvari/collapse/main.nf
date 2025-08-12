@@ -7,13 +7,11 @@ process TRUVARI_COLLAPSE {
 
     input:
     tuple val(meta), path(vcf), path(tbi)
-    val(refdist) // Reference distance for merging
-    val(pctsim)  // Percent similarity for merging
-    val(pctseq)  // Percent sequence for merging
-    val(no_consolidate) // Flag to disable consolidation
-    val(passonly) // Flag to only keep PASS variants
-    val(dup_to_ins) // Flag to treat Duplications as Insertions
-
+    val(refdist)     // Reference distance for merging
+    val(pctsim)      // Percent similarity for merging
+    val(pctseq)      // Percent sequence for merging
+    val(passonly)    // Boolean: Flag to only keep PASS variants
+    val(dup_to_ins)  // Boolean: Flag to treat Duplications as Insertions
 
     output:
     tuple val(meta), path("*.merged.vcf")         , emit: merged_vcf
@@ -27,19 +25,20 @@ process TRUVARI_COLLAPSE {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     
+    // Convert boolean values to command-line flags
+    def passonly_flag = passonly ? '--passonly' : ''
+    def dup_to_ins_flag = dup_to_ins ? '--dup-to-ins' : ''
 
     """
     truvari collapse \\
-        -p=0 \\
         --intra \\
         -i ${vcf} \\
         -o ${prefix}.merged.vcf \\
         -r ${refdist} \\
         -P ${pctsim} \\
         --pctseq ${pctseq} \\
-        ${no_consolidate} \\
-        ${passonly} \\
-        ${dup_to_ins} \\
+        ${passonly_flag} \\
+        ${dup_to_ins_flag} \\
         -c ${prefix}.collapsed.vcf \\
         ${args}
 

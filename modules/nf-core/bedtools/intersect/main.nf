@@ -8,8 +8,9 @@ process BEDTOOLS_INTERSECT {
         'biocontainers/bedtools:2.31.1--hf5e1c6e_0' }"
 
     input:
-    tuple val(meta), path(intervals1), path(intervals2)
-    tuple val(meta2), path(chrom_sizes)
+    tuple val(meta), path(intervals1) 
+    tuple val(meta2), path(intervals2)
+    tuple val(meta3), path(chrom_sizes)
 
     output:
     tuple val(meta), path("*.${extension}"), emit: intersect

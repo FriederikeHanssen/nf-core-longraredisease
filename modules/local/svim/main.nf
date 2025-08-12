@@ -2,7 +2,7 @@ process SVIM {
     tag "$meta.id"
     label 'process_high'
 
-    conda "${moduleDir}/environment.yml"
+
     container "biocontainers/svim:2.0.0--pyhdfd78af_0"
 
     input:

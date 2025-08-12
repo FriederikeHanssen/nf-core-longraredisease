@@ -31,10 +31,11 @@ include { sv_subworkflow                      } from '../subworkflows/local/sv.n
 include { SVANNA_PRIORITIZE                   } from '../modules/local/SvAnna/main.nf'
 
 // SV merging and intersection filtering subworkflows
-include { consensuSV_subworkflow              } from '../subworkflows/local/consensuSV.nf'
+
 include { GUNZIP as GUNZIP_SNIFFLES           } from '../modules/nf-core/gunzip/main.nf'
 include { GUNZIP as GUNZIP_CUTESV           } from '../modules/nf-core/gunzip/main.nf'
 include { GUNZIP as GUNZIP_SVIM           } from '../modules/nf-core/gunzip/main.nf'
+include { consensuSV_subworkflow              } from '../subworkflows/local/consensuSV.nf'
 
 // SV filtering subworkflows - coverage-based filtering
 include { filterSV_subworkflow                } from '../subworkflows/local/filterSV.nf'
@@ -315,7 +316,7 @@ workflow nanoraredx {
         
 
         // Extract VCF from the sv_gz_tbi channel for unify_vcf_subworkflow
-            ch_sv_vcf = sv_subworkflow.out.vcf_gz
+            ch_sv_vcf = sv_subworkflow.out.primary_vcf_gz
                 
 
         /*
@@ -350,20 +351,29 @@ workflow nanoraredx {
                     [meta, vcfs]
                 }
 
-            // Run multi-caller filtering
-            consensuSV_subworkflow(
+
+                // Group by meta to ensure we're merging files from the same sample
+                ch_merge_input = sv_subworkflow.out.sniffles_vcf_gz
+                .join(sv_subworkflow.out.sniffles_tbi, by: 0)
+                .join(sv_subworkflow.out.svim_vcf_gz, by: 0)
+                .join(sv_subworkflow.out.svim_tbi, by: 0)
+                .join(sv_subworkflow.out.cutesv_vcf_gz, by: 0)
+                .join(sv_subworkflow.out.cutesv_tbi, by: 0)
+                .map { meta, sniffles_vcf, sniffles_tbi, svim_vcf, svim_tbi, cutesv_vcf, cutesv_tbi ->
+                tuple(meta, 
+                  [sniffles_vcf, svim_vcf, cutesv_vcf], 
+                  [sniffles_tbi, svim_tbi, cutesv_tbi])
+                  }
+
+                // Run multi-caller filtering
+                consensuSV_subworkflow(
                 ch_vcfs_for_merging,
-                params.max_distance_breakpoints ?: 1000,
-                params.min_supporting_callers ?: 2,
-                params.account_for_type ?: true,
-                params.account_for_sv_strands ?: true,
-                params.estimate_distanced_by_sv_size ?: false,
-                params.min_sv_size ?: 30
-            )
+                ch_merge_input
+                )
 
             // Extract VCF from the gz_tbi channel for unify_vcf_subworkflow
             // In your consensuSV section, normalize the meta before emitting
-            ch_sv_vcf = consensuSV_subworkflow.out.vcf_gz
+            ch_sv_vcf = consensuSV_subworkflow.out.vcf
             .map { meta, vcf_gz -> 
              def clean_meta = [id: meta.id]
              tuple(clean_meta, vcf_gz) 
@@ -371,10 +381,17 @@ workflow nanoraredx {
             
         }
     } 
+     
      else {
         // Create empty channel when SV calling is disabled
         ch_sv_vcf = Channel.empty()
     }
+
+    SVANNA_PRIORITIZE(
+    ch_sv_vcf,           // tuple val(meta), path(vcf)
+    params.svanna_db,    // path(data_directory) 
+    params.hpo_terms     // val(hpo_terms)
+    )
 
 /*
 ================================================================================
