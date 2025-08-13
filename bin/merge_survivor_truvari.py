@@ -54,19 +54,28 @@ def vcf_id_set(id_field):
     return {i for i in id_field.split(";") if i}
 
 def extract_support_value(info_field):
-    """Extract support value from INFO field (RE or SUPPORT)"""
-    support = 0
-    # Try RE first (cuteSV format)
-    re_match = re.search(r'RE=(\d+)', info_field)
-    if re_match:
-        support = max(support, int(re_match.group(1)))
+    """Extract support value from INFO field with fallback options"""
+    support = None
     
-    # Try SUPPORT (Sniffles format)
-    support_match = re.search(r'SUPPORT=(\d+)', info_field)
-    if support_match:
-        support = max(support, int(support_match.group(1)))
+    # Try various support field formats
+    support_patterns = [
+        r'RE=(\d+)',           # cuteSV
+        r'SUPPORT=(\d+)',      # Sniffles
+        r'DR=(\d+)',           # Some callers use DR (supporting reads)
+        r'DV=(\d+)',           # Some use DV (variant reads)
+        r'AD=\d+,(\d+)',       # Allelic depth (take alt allele count)
+    ]
     
-    return support
+    for pattern in support_patterns:
+        match = re.search(pattern, info_field)
+        if match:
+            try:
+                value = int(match.group(1))
+                support = max(support or 0, value)
+            except (ValueError, IndexError):
+                continue
+    
+    return support 
 
 def get_quality_score(cols):
     """Extract and return quality metrics for comparison"""
@@ -185,7 +194,7 @@ if __name__ == "__main__":
         logger.error(f"Usage: {sys.argv[0]} <input.vcf> <input.bed> <output.vcf>")
         sys.exit(1)
     
-    # Enable debug logging if needed (uncomment the line below)
+    # For debugging 
     # logging.getLogger().setLevel(logging.DEBUG)
     
     main(sys.argv[1], sys.argv[2], sys.argv[3])

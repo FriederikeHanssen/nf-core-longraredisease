@@ -1,11 +1,11 @@
 //Alignment with MINIMAP2
 
-include { MINIMAP2_INDEX } from '../../modules/nf-core/minimap2/index/main'
-include { MINIMAP2_ALIGN } from '../../modules/nf-core/minimap2/align/main'
+include { MINIMAP2_INDEX as MINIMAP2_INDEX_BAM } from '../../modules/nf-core/minimap2/index/main'
+include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_BAM } from '../../modules/nf-core/minimap2/align/main'
 
 
 
-workflow minimap2_align_subworkflow {
+workflow minimap2_align_bam_subworkflow {
 
     take:
     ch_fasta
@@ -14,9 +14,9 @@ workflow minimap2_align_subworkflow {
     main:
 
     // 1. Generate index
-    MINIMAP2_INDEX ( ch_fasta )
-    ch_minimap_index   = MINIMAP2_INDEX.out.index
-    minimap2_version   = MINIMAP2_INDEX.out.versions
+    MINIMAP2_INDEX_BAM( ch_fasta )
+    ch_minimap_index   = MINIMAP2_INDEX_BAM.out.index
+    minimap2_version   = MINIMAP2_INDEX_BAM.out.versions
 
     // 2. Map reads to reference
     ch_fastq
@@ -33,7 +33,7 @@ workflow minimap2_align_subworkflow {
     def cigar_paf_format = false
     def cigar_bam = false
 
-    MINIMAP2_ALIGN(
+    MINIMAP2_ALIGN_BAM(
         ch_reads,
         ch_ref,
         bam_format,
@@ -42,9 +42,9 @@ workflow minimap2_align_subworkflow {
         cigar_bam
     )
 
-    ch_sorted_bam     = MINIMAP2_ALIGN.out.bam
-    ch_sorted_bai     = MINIMAP2_ALIGN.out.index
-    minimap2_version  = MINIMAP2_ALIGN.out.versions
+    ch_sorted_bam     = MINIMAP2_ALIGN_BAM.out.bam
+    ch_sorted_bai     = MINIMAP2_ALIGN_BAM.out.index
+    minimap2_version  = MINIMAP2_ALIGN_BAM.out.versions
 
     ch_sorted_bam
         .join(ch_sorted_bai, by: 0)
@@ -56,5 +56,6 @@ workflow minimap2_align_subworkflow {
     minimap2_version
     ch_sorted_bam
     ch_sorted_bai
+    ch_bam_bai
 }
 

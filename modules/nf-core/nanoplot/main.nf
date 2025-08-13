@@ -22,8 +22,12 @@ process NANOPLOT {
 
     script:
     def args = task.ext.args ?: ''
-    def input_file = ("$ontfile".endsWith(".fastq.gz") || "$ontfile".endsWith(".fq.gz")) ? "--fastq ${ontfile}" :
-        ("$ontfile".endsWith(".txt")) ? "--summary ${ontfile}" : ''
+    // Updated logic to handle BAM, FASTQ, and summary files
+    def input_file = 
+        ("$ontfile".endsWith(".bam")) ? "--bam ${ontfile}" :
+        ("$ontfile".endsWith(".fastq.gz") || "$ontfile".endsWith(".fq.gz") || "$ontfile".endsWith(".fastq") || "$ontfile".endsWith(".fq")) ? "--fastq ${ontfile}" :
+        ("$ontfile".endsWith(".txt")) ? "--summary ${ontfile}" : 
+        ("$ontfile".endsWith(".sam")) ? "--bam ${ontfile}" : ''
     """
     NanoPlot \\
         $args \\
@@ -48,7 +52,6 @@ process NANOPLOT {
     touch WeightedHistogramReadlength.html
     touch WeightedLogTransformed_HistogramReadlength.html
     touch Yield_By_Length.html
-
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

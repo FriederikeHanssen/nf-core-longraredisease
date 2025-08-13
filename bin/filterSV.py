@@ -186,8 +186,17 @@ def main():
         else:
             logging.info(f"Extracted average depth: {avg_depth:.2f}")
         
-        detected_read_support = int(threshold_lookup[round(avg_depth)])
-        logging.info(f"Detected read support from lookup: {detected_read_support}")
+        # FIX: Handle high coverage values that exceed the lookup table
+        rounded_depth = round(avg_depth)
+        max_lookup_index = len(threshold_lookup) - 1
+        
+        if rounded_depth >= len(threshold_lookup):
+            # Use the highest available threshold for very high coverage
+            detected_read_support = int(threshold_lookup[-1])
+            logging.warning(f"Coverage {avg_depth:.2f}x (rounded to {rounded_depth}) exceeds lookup table range (max index: {max_lookup_index}). Using maximum threshold: {detected_read_support}")
+        else:
+            detected_read_support = int(threshold_lookup[rounded_depth])
+            logging.info(f"Detected read support from lookup: {detected_read_support}")
 
         if detected_read_support > args.min_read_support_limit:
             min_read_support = detected_read_support

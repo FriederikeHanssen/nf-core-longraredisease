@@ -17,7 +17,9 @@ include { BAM_STATS_SAMTOOLS                 } from '../subworkflows/nf-core/bam
 include { SAMTOOLS_INDEX                     } from '../modules/nf-core/samtools/index/main'
 include { SAMTOOLS_FAIDX                     } from '../modules/nf-core/samtools/faidx/main.nf'
 include { bam2fastq_subworkflow              } from '../subworkflows/local/bam2fastq.nf'
-include { minimap2_align_subworkflow         } from '../subworkflows/local/minimap2_align.nf'
+include { minimap2_align_bam_subworkflow         } from '../subworkflows/local/minimap2_align_bam.nf'
+include { minimap2_align_fastq_subworkflow         } from '../subworkflows/local/minimap2_align_fastq.nf'
+include { CAT_FASTQ                          } from '../modules/nf-core/cat/fastq/main.nf'
 include { NANOPLOT as NANOPLOT_QC            } from '../modules/nf-core/nanoplot/main'
 
 // Methylation calling 
@@ -37,8 +39,6 @@ include { GUNZIP as GUNZIP_CUTESV           } from '../modules/nf-core/gunzip/ma
 include { GUNZIP as GUNZIP_SVIM           } from '../modules/nf-core/gunzip/main.nf'
 include { consensuSV_subworkflow              } from '../subworkflows/local/consensuSV.nf'
 
-// SV filtering subworkflows - coverage-based filtering
-include { filterSV_subworkflow                } from '../subworkflows/local/filterSV.nf'
 
 // SNV calling and processing subworkflows
 include { snv_subworkflow                     } from '../subworkflows/local/snv.nf'
@@ -65,57 +65,69 @@ include { unify_vcf_subworkflow } from '../subworkflows/local/unify_vcf.nf'
 
 workflow nanoraredx {
 
-    // Parameter validation
-    if (params.phase && !params.snv) {
-        error "Phasing requires SNV calling to be enabled (--snv true)"
-    }
+// Parameter validation
+if (params.phase && !params.snv) {
+    error "Phasing requires SNV calling to be enabled (--snv true)"
+}
 
-    if (params.phase_with_sv && !params.sv) {
-        error "Phasing with SVs requires SV calling to be enabled (--sv true)"
-    }
+if (params.phase_with_sv && !params.sv) {
+    error "Phasing with SVs requires SV calling to be enabled (--sv true)"
+}
 
-    if (params.filter_sv && !params.sv) {
-        error "SV coverage filtering requires SV calling to be enabled (--sv true)"
-    }
+if (params.filter_sv && !params.sv) {
+    error "SV coverage filtering requires SV calling to be enabled (--sv true)"
+}
 
-    if (params.cnv && !params.run_qdnaseq && !params.use_test_data && !params.snv) {
-        error "Spectre CNV calling requires SNV calling to be enabled (--snv true) unless using test data"
-    }
+if (params.cnv && !params.run_qdnaseq && !params.use_test_data && !params.snv) {
+    error "Spectre CNV calling requires SNV calling to be enabled (--snv true) unless using test data"
+}
 
-    if (params.consensuSV && !params.sv) {
-        error "Multi-caller SV filtering requires SV calling to be enabled (--sv true)"
-    }
+if (params.consensuSV && !params.sv) {
+    error "Multi-caller SV filtering requires SV calling to be enabled (--sv true)"
+}
 
-    // Input validation based on alignment parameter
-    if (params.align) {
-        // When align=true, expect unaligned BAMs in bam_dir
-        if (!params.bam_dir) {
-            error "When --align is true, --bam_dir must be provided with unaligned BAM files"
+// ADD: Check for conflicting alignment options
+if (params.align_with_bam && params.align_with_fastq) {
+    error "Cannot use both --align_with_bam and --align_with_fastq simultaneously. Choose one alignment method."
+}
+
+// Input validation based on alignment parameter
+if (params.align_with_bam) {
+    // When align_with_bam=true, expect unaligned BAMs in bam_dir
+    if (!params.bam_dir) {
+        error "When --align_with_bam is true, --bam_dir must be provided with unaligned BAM files"
+    }
+    if (!params.sample_name) {
+        error "When --align_with_bam is true, --sample_name must be provided"
+    }
+} else if (params.align_with_fastq) {
+    // When align_with_fastq=true, expect FASTQ files in fastq_dir
+    if (!params.fastq_dir) {
+        error "When --align_with_fastq is true, --fastq_dir must be provided with FASTQ files"
+    }
+    if (!params.sample_name) {
+        error "When --align_with_fastq is true, --sample_name must be provided"
+    }
+} else {
+    // When neither alignment option is true, expect aligned BAM file
+    if (!params.aligned_bam) {
+        error "When alignment is disabled, --aligned_bam must be provided with the path to aligned BAM file"
+    }
+    // Extract sample name from aligned BAM filename if not provided
+    if (!params.sample_name) {
+        def aligned_bam_file = file(params.aligned_bam)
+        def extracted_sample_name = aligned_bam_file.name
+            .replaceAll(/\.sorted\.bam$/, '')
+            .replaceAll(/\.bam$/, '')
+        
+        if (extracted_sample_name.isEmpty()) {
+            error "Could not extract sample name from aligned BAM filename: ${aligned_bam_file.name}. Please provide --sample_name manually."
         }
-        if (!params.sample_name) {
-            error "When --align is true, --sample_name must be provided"
-        }
-    } else {
-        // When align=false, expect aligned BAM file
-        if (!params.aligned_bam) {
-            error "When --align is false, --aligned_bam must be provided with the path to aligned BAM file"
-        }
-        // Extract sample name from aligned BAM filename if not provided
-        if (!params.sample_name) {
-            def aligned_bam_file = file(params.aligned_bam)
-            // Handle naming pattern like "A.sorted.bam" -> extract "A"
-            def extracted_sample_name = aligned_bam_file.name
-                .replaceAll(/\.sorted\.bam$/, '')  // Remove .sorted.bam
-                .replaceAll(/\.bam$/, '')          // Remove .bam (fallback)
-            
-            if (extracted_sample_name.isEmpty()) {
-                error "Could not extract sample name from aligned BAM filename: ${aligned_bam_file.name}. Please provide --sample_name manually."
-            }
-            
-            params.sample_name = extracted_sample_name
-            log.info "Sample name extracted from aligned BAM: ${params.sample_name}"
-        }
+        
+        params.sample_name = extracted_sample_name
+        log.info "Sample name extracted from aligned BAM: ${params.sample_name}"
     }
+}
 
 /*
 =======================================================================================
@@ -150,8 +162,46 @@ workflow nanoraredx {
                                DATA PREPROCESSING PIPELINE
 =======================================================================================
 */
-    
-    if (params.align) {
+    if (params.align_with_fastq) {
+        /*
+        ================================================================================
+                            FASTQ ALIGNMENT WORKFLOW
+        ================================================================================
+        */
+        
+        log.info "Sample name: ${params.sample_name}"
+        
+        // Collect FASTQ files
+        ch_fastq_files = Channel
+            .fromPath("${params.fastq_dir}/*.fastq.gz", checkIfExists: true)
+            .collect()  // Collect all files into a single list
+            .map { fastq_list ->
+                // Create single sample with all FASTQ files
+                def meta = [id: params.sample_name]
+                return [meta, fastq_list]
+            }
+
+        // Align FASTQ reads to reference genome using minimap2
+        minimap2_align_fastq_subworkflow(
+            ch_fasta,
+            ch_fastq_files
+        )
+
+        // Set final aligned BAM channels from minimap2 output
+        ch_final_sorted_bam = minimap2_align_fastq_subworkflow.out.bam
+        ch_final_sorted_bai = minimap2_align_fastq_subworkflow.out.index
+
+        // Prepare input for nanoplot from FASTQ
+        CAT_FASTQ(
+            ch_fastq_files.map { meta, fastq_list ->
+        [meta + [single_end: true], fastq_list]  // Add single_end: true inline
+        }
+        )
+        ch_nanoplot = CAT_FASTQ.out.reads
+        
+    }
+
+    else if (params.align_with_bam) {
         /*
         ================================================================================
                             ALIGNMENT WORKFLOW (UNALIGNED INPUT)
@@ -177,17 +227,17 @@ workflow nanoraredx {
         )
 
         // Align FASTQ reads to reference genome using minimap2
-        minimap2_align_subworkflow(
+        minimap2_align_bam_subworkflow(
             ch_fasta,
             bam2fastq_subworkflow.out.other
         )
 
         // Set final aligned BAM channels from minimap2 output
-        ch_final_sorted_bam = minimap2_align_subworkflow.out.ch_sorted_bam
-        ch_final_sorted_bai = minimap2_align_subworkflow.out.ch_sorted_bai
+        ch_final_sorted_bam = minimap2_align_bam_subworkflow.out.ch_sorted_bam
+        ch_final_sorted_bai = minimap2_align_bam_subworkflow.out.ch_sorted_bai
 
         // Prepare input for nanoplot from FASTQ
-        ch_fastq_nanoplot = bam2fastq_subworkflow.out.other
+        ch_nanoplot = bam2fastq_subworkflow.out.other
             .map { meta, fastq_file ->
                 tuple(meta, fastq_file) 
             }
@@ -200,33 +250,19 @@ workflow nanoraredx {
         */
         
         // Use pre-aligned BAM file
-        ch_aligned_bam = Channel
-            .fromPath(params.aligned_bam, checkIfExists: true)
-            .map { bam ->
-                def meta = [id: params.sample_name]
-                return [meta, bam]
-            }
-
-        // Check if BAI file already exists before generating
-        def bai_file = file("${params.aligned_bam}.bai")
-        
-        if (bai_file.exists()) {
-            // Create channel with existing BAI file
-            ch_aligned_bai = ch_aligned_bam.map { meta, bam ->
-                return [meta, file("${bam}.bai")]
-            }
-        } else {
-            // Generate BAI index
-            SAMTOOLS_INDEX(ch_aligned_bam)
-            ch_aligned_bai = SAMTOOLS_INDEX.out.bai
+        // Use pre-aligned BAM file (assume BAI exists)
+        ch_final_sorted_bam = Channel
+        .fromPath(params.aligned_bam, checkIfExists: true)
+        .map { bam ->
+        def meta = [id: params.sample_name]
+        return [meta, bam]
         }
-
-        // Set final aligned BAM channels from input
-        ch_final_sorted_bam = ch_aligned_bam
-        ch_final_sorted_bai = ch_aligned_bai
-
+        
+        ch_final_sorted_bai = ch_final_sorted_bam.map { meta, bam ->
+        return [meta, file("${bam}.bai")]
+        }
         // For nanoplot, we'll skip it (no FASTQ available)
-        ch_fastq_nanoplot = Channel.empty()
+        ch_nanoplot = ch_final_sorted_bam
     }
 
 /*
@@ -257,12 +293,11 @@ workflow nanoraredx {
     }
     
     // Run nanoplot (only if we have FASTQ data from alignment workflow)
-    if (params.qc && params.align) {
+    if (params.qc) {
+        // Both workflows produce ch_fastq_nanoplot
         NANOPLOT_QC(
-            ch_fastq_nanoplot
+            ch_nanoplot
         )
-    } else if (params.qc && !params.align) {
-        log.warn "Skipping NanoPlot: QC enabled but no FASTQ data available (using pre-aligned BAM)"
     }
     
     // Run mosdepth when needed
@@ -276,13 +311,36 @@ workflow nanoraredx {
     // Methylation calling with modkit (if enabled)
     ch_empty_bed = Channel.value([[:], []])
 
+
+
     if (params.methyl) {
-        methyl_subworkflow(
-            ch_input_bam,
+        if (params.align_with_bam) {
+        // Use workflow-generated BAM for methylation analysis
+            ch_methyl_input = ch_input_bam
+            
+        
+        } else {
+            // For align_with_fastq or no alignment: use methylated BAM from path
+            if (!params.methyl_bam) {
+                error "When --methyl is enabled without --align_with_bam, --methyl_bam must be provided as fastq files do not have methylation info"
+            }
+        
+            // Create methylation BAM channel following the same logic as ch_input_bam
+            ch_methyl_input = Channel
+            .fromPath(params.methyl_bam, checkIfExists: true)
+            .map { bam ->
+            def meta = [id: params.sample_name]
+            return [meta, bam, file("${bam}.bai")] 
+            }
+            }
+            
+            methyl_subworkflow(
+            ch_methyl_input,
             ch_fasta_fai,
             ch_empty_bed  // Empty channel for optional BED file
-        )
-    }
+            )
+        
+        }
 
 /*
 =======================================================================================

@@ -14,8 +14,8 @@ process TRUVARI_COLLAPSE {
     val(dup_to_ins)  // Boolean: Flag to treat Duplications as Insertions
 
     output:
-    tuple val(meta), path("*.merged.vcf")         , emit: merged_vcf
-    tuple val(meta), path("*.collapsed.vcf")      , emit: collapsed_vcf
+    tuple val(meta), path("*_merged.vcf")         , emit: merged_vcf
+    tuple val(meta), path("*_collapsed.vcf")      , emit: collapsed_vcf
     path "versions.yml"                           , emit: versions
 
     when:
@@ -33,13 +33,13 @@ process TRUVARI_COLLAPSE {
     truvari collapse \\
         --intra \\
         -i ${vcf} \\
-        -o ${prefix}.merged.vcf \\
+        -o ${prefix}_merged.vcf \\
         -r ${refdist} \\
         -P ${pctsim} \\
         --pctseq ${pctseq} \\
         ${passonly_flag} \\
         ${dup_to_ins_flag} \\
-        -c ${prefix}.collapsed.vcf \\
+        -c ${prefix}_collapsed.vcf \\
         ${args}
 
     cat <<-END_VERSIONS > versions.yml
@@ -51,8 +51,8 @@ process TRUVARI_COLLAPSE {
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}.merged.vcf
-    touch ${prefix}.collapsed.vcf
+    touch ${prefix}_merged.vcf
+    touch ${prefix}_collapsed.vcf
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

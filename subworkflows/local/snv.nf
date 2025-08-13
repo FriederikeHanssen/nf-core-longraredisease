@@ -13,7 +13,7 @@ workflow snv_subworkflow {
     fai                     // channel: tuple(val(meta3), path(fai)) - optional
     deepvariant             // boolean, if true, will run deepvariant on the input bam file
     ch_input_deepvariant    // channel: [meta, bam, bai]
-    filter_pass             // boolean, if true, will filter for PASS variants
+    filter_pass_snv            // boolean, if true, will filter for PASS variants
     
     main:
     ch_versions = Channel.empty()
@@ -36,7 +36,7 @@ workflow snv_subworkflow {
     ch_versions = ch_versions.mix(CLAIR3_FIX.out.versions)
 
     // Handle CLAIR3 filtering
-    if (filter_pass) {
+    if (filter_pass_snv) {
         ch_clair3_vcf = CLAIR3_FIX.out.vcf
             .join(CLAIR3_FIX.out.tbi, by: 0)
          
@@ -68,7 +68,7 @@ workflow snv_subworkflow {
 
         ch_deepvariant_versions = DEEPVARIANT_RUNDEEPVARIANT.out.versions
 
-        if (filter_pass) {
+        if (filter_pass_snv) {
             ch_deepvariant_vcf = DEEPVARIANT_RUNDEEPVARIANT.out.vcf
                 .join(DEEPVARIANT_RUNDEEPVARIANT.out.vcf_tbi, by: 0)
             
