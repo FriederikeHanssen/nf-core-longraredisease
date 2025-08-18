@@ -26,7 +26,7 @@
 
 ## Introduction
 
-**NANORAREDX** is a comprehensive Nextflow pipeline for Oxford Nanopore sequencing analysis, designed for rare disease research and diagnostics. It delivers high-confidence variant discovery by integrating multiple state-of-the-art tools. NANORAREDX performs multi-caller structural variant (SV) detection, single nucleotide variant (SNV) calling, copy number variant (CNV) analysis, short tandem repeat (STR) detection, and phasing analysis—all in a reproducible, modular workflow.
+**NANORAREDX** is a comprehensive Nextflow pipeline for Oxford Nanopore sequencing analysis, designed for rare disease research and diagnostics. It delivers high-confidence variant discovery by integrating multiple state-of-the-art tools. NANORAREDX performs multi-caller structural variant (SV) detection, single nucleotide variant (SNV) calling, copy number variant (CNV) analysis, short tandem repeat (STR) detection, and phasing analysis in a reproducible, modular workflow.
 
 **Pipeline Overview**  
 - **Structural Variants (SVs):** Sniffles, CuteSV, SVIM, with SURVIVOR merging  
