@@ -20,7 +20,7 @@
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/nanoraredx/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row. See [usage docs](https://nf-co.re/nanoraredx/usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
@@ -40,6 +40,71 @@
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                }
+            }
+        },
+        "workflow_options": {
+            "title": "Workflow options",
+            "type": "object",
+            "fa_icon": "fas fa-cogs",
+            "description": "Options to configure the workflow execution mode.",
+            "properties": {
+                "align_with_fastq": {
+                    "type": "boolean",
+                    "description": "Align FASTQ files to reference genome using minimap2.",
+                    "fa_icon": "fas fa-align-left",
+                    "help_text": "Enable this option when you have raw FASTQ files that need to be aligned to a reference genome."
+                },
+                "align_with_bam": {
+                    "type": "boolean", 
+                    "description": "Convert unaligned BAM files to FASTQ and align to reference genome.",
+                    "fa_icon": "fas fa-file-archive",
+                    "help_text": "Enable this option when you have unaligned BAM files that need to be converted to FASTQ and then aligned."
+                },
+                "sv": {
+                    "type": "boolean",
+                    "description": "Enable structural variant calling.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "snv": {
+                    "type": "boolean", 
+                    "description": "Enable single nucleotide variant calling.",
+                    "fa_icon": "fas fa-search"
+                },
+                "cnv": {
+                    "type": "boolean",
+                    "description": "Enable copy number variant calling.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "str": {
+                    "type": "boolean",
+                    "description": "Enable short tandem repeat analysis.",
+                    "fa_icon": "fas fa-repeat"
+                },
+                "methyl": {
+                    "type": "boolean",
+                    "description": "Enable methylation calling.",
+                    "fa_icon": "fas fa-flask"
+                },
+                "phase": {
+                    "type": "boolean",
+                    "description": "Enable phasing analysis.",
+                    "fa_icon": "fas fa-link"
+                },
+                "qc": {
+                    "type": "boolean",
+                    "description": "Enable quality control analysis.",
+                    "fa_icon": "fas fa-check-circle"
+                },
+                "generate_bam_stats": {
+                    "type": "boolean",
+                    "description": "Generate BAM statistics using samtools.",
+                    "fa_icon": "fas fa-chart-bar"
+                },
+                "generate_coverage": {
+                    "type": "boolean",
+                    "description": "Generate coverage analysis.",
+                    "fa_icon": "fas fa-layer-group"
                 }
             }
         },
@@ -231,6 +296,9 @@
     "allOf": [
         {
             "$ref": "#/$defs/input_output_options"
+        },
+        {
+            "$ref": "#/$defs/workflow_options"
         },
         {
             "$ref": "#/$defs/reference_genome_options"

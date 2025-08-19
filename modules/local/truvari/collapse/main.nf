@@ -6,7 +6,7 @@ process TRUVARI_COLLAPSE {
     container "biocontainers/truvari:5.3.0--pyhdfd78af_0"
 
     input:
-    tuple val(meta), path(vcf), path(tbi)
+    tuple val(meta), path(vcf), path(tbi), path(bed)
     val(refdist)     // Reference distance for merging
     val(pctsim)      // Percent similarity for merging
     val(pctseq)      // Percent sequence for merging
@@ -28,15 +28,16 @@ process TRUVARI_COLLAPSE {
     // Convert boolean values to command-line flags
     def passonly_flag = passonly ? '--passonly' : ''
     def dup_to_ins_flag = dup_to_ins ? '--dup-to-ins' : ''
+    def bed_flag = (bed && bed.name != 'NO_FILE') ? "--bed ${bed}" : ''
 
     """
     truvari collapse \\
-        --intra \\
         -i ${vcf} \\
         -o ${prefix}_merged.vcf \\
         -r ${refdist} \\
         -P ${pctsim} \\
         --pctseq ${pctseq} \\
+        ${bed_flag} \\
         ${passonly_flag} \\
         ${dup_to_ins_flag} \\
         -c ${prefix}_collapsed.vcf \\

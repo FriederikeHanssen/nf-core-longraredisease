@@ -7,27 +7,60 @@
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "sample_id": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces",
-                "meta": ["id"]
+                "errorMessage": "Sample ID must be provided and cannot contain spaces",
+                "meta": ["id"],
+                "description": "Unique sample identifier"
             },
-            "fastq_1": {
+            "bam_dir": {
+                "type": "string",
+                "format": "directory-path",
+                "description": "Directory containing unaligned BAM files for this sample",
+                "help_text": "Directory path containing unaligned BAM files. Used when --align_with_bam is enabled."
+            },
+            "fastq_dir": {
+                "type": "string", 
+                "format": "directory-path",
+                "description": "Directory containing FASTQ files for this sample",
+                "help_text": "Directory path containing FASTQ files (.fastq.gz or .fq.gz). Used when --align_with_fastq is enabled."
+            },
+            "aligned_bam": {
                 "type": "string",
                 "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+\\.bam$",
+                "description": "Path to pre-aligned BAM file",
+                "help_text": "Full path to a pre-aligned BAM file. The corresponding .bai index file must exist in the same directory. Used when neither --align_with_fastq nor --align_with_bam are enabled."
             },
-            "fastq_2": {
+            "methyl_bam": {
                 "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "format": "file-path", 
+                "pattern": "^\\S+\\.bam$",
+                "description": "Path to BAM file with methylation information",
+                "help_text": "Full path to a BAM file containing methylation calls. Required when --methyl is enabled and --align_with_bam is not used. The corresponding .bai index file must exist in the same directory."
+            },
+            "hpo_terms": {
+                "type": "string",
+                "pattern": "^HP:\\d{7}(;HP:\\d{7})*$",
+                "description": "Human Phenotype Ontology terms separated by semicolons",
+                "help_text": "HPO terms describing the phenotype, separated by semicolons (e.g., HP:0002721;HP:0002110;HP:0500093). Used for variant prioritization.",
+                "examples": ["HP:0002721;HP:0002110;HP:0500093"]
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["sample_id", "hpo_terms"],
+        "anyOf": [
+            {"required": ["bam_dir"], "description": "For unaligned BAM workflow"},
+            {"required": ["fastq_dir"], "description": "For FASTQ alignment workflow"}, 
+            {"required": ["aligned_bam"], "description": "For pre-aligned BAM workflow"}
+        ],
+        "additionalProperties": false,
+        "errorMessage": {
+            "properties": {
+                "sample_id": "Sample ID must be provided and cannot contain spaces",
+                "hpo_terms": "HPO terms must be in the format HP:0000000, separated by semicolons if multiple"
+            },
+            "anyOf": "Each sample must have either 'bam_dir', 'fastq_dir', or 'aligned_bam' specified"
+        }
     }
 }
