@@ -20,8 +20,7 @@ include { BAM_STATS_SAMTOOLS                 } from '../subworkflows/nf-core/bam
 include { SAMTOOLS_INDEX                     } from '../modules/nf-core/samtools/index/main'
 include { SAMTOOLS_FAIDX                     } from '../modules/nf-core/samtools/faidx/main.nf'
 include { bam2fastq_subworkflow              } from '../subworkflows/local/bam2fastq.nf'
-include { minimap2_align_bam_subworkflow     } from '../subworkflows/local/minimap2_align_bam.nf'
-include { minimap2_align_fastq_subworkflow   } from '../subworkflows/local/minimap2_align_fastq.nf'
+include { minimap2_align_subworkflow     } from '../subworkflows/local/minimap2_align.nf'
 include { CAT_FASTQ                          } from '../modules/nf-core/cat/fastq/main.nf'
 include { NANOPLOT as NANOPLOT_QC            } from '../modules/nf-core/nanoplot/main'
 
@@ -143,14 +142,14 @@ workflow nanoraredx {
             }
 
         // Align FASTQ reads to reference genome using minimap2
-        minimap2_align_fastq_subworkflow(
+        minimap2_align_subworkflow(
             ch_fasta,
             ch_fastq_files
         )
 
         // Set final aligned BAM channels from minimap2 output
-        ch_final_sorted_bam = minimap2_align_fastq_subworkflow.out.bam
-        ch_final_sorted_bai = minimap2_align_fastq_subworkflow.out.index
+        ch_final_sorted_bam = minimap2_align_subworkflow.out.bam
+        ch_final_sorted_bai = minimap2_align_subworkflow.out.bai
 
         // Prepare input for nanoplot from FASTQ
         CAT_FASTQ(
@@ -193,14 +192,14 @@ workflow nanoraredx {
         )
 
         // Align FASTQ reads to reference genome using minimap2
-        minimap2_align_bam_subworkflow(
+        minimap2_align_subworkflow(
             ch_fasta,
             bam2fastq_subworkflow.out.other
         )
 
         // Set final aligned BAM channels from minimap2 output
-        ch_final_sorted_bam = minimap2_align_bam_subworkflow.out.ch_sorted_bam
-        ch_final_sorted_bai = minimap2_align_bam_subworkflow.out.ch_sorted_bai
+        ch_final_sorted_bam = minimap2_align_subworkflow.out.bam
+        ch_final_sorted_bai = minimap2_align_subworkflow.out.bai
 
         // Prepare input for nanoplot from FASTQ
         ch_nanoplot = bam2fastq_subworkflow.out.other
@@ -379,7 +378,8 @@ workflow nanoraredx {
             // Run multi-caller filtering
             consensuSV_subworkflow(
                 ch_vcfs_for_merging,
-                ch_merge_input
+                ch_merge_input,
+                params.use_survivor_bed
             )
 
             // Extract VCF from the gz_tbi channel for unify_vcf_subworkflow
@@ -389,23 +389,20 @@ workflow nanoraredx {
                     tuple(clean_meta, vcf_gz) 
                 }
         }
+    // Extract HPO terms while preserving sample order
+    ch_hpo_terms = ch_samplesheet
+    .map { meta, data -> data.hpo_terms }
+
+    SVANNA_PRIORITIZE(
+        ch_sv_vcf,
+        params.svanna_db,
+        ch_hpo_terms
+    )
+
     } else {
         // Create empty channel when SV calling is disabled
         ch_sv_vcf = Channel.empty()
     }
-
-    // Collect HPO terms from all samples
-    ch_all_hpo_terms = ch_samplesheet
-        .map { meta, data -> data.hpo_terms }
-        .collect()
-        .map { hpo_list -> hpo_list.join(';') }
-    
-    SVANNA_PRIORITIZE(
-        ch_sv_vcf,
-        params.svanna_db,
-        ch_all_hpo_terms
-    )
-
 /*
 ================================================================================
                         SINGLE NUCLEOTIDE VARIANT CALLING
@@ -522,31 +519,30 @@ workflow nanoraredx {
                 params.spectre_blacklist
             )
             ch_cnv_vcf = cnv_subworkflow.out.vcf
-        } else {
-            // Extract just the BED file from mosdepth output
-            ch_spectre_mosdepth_bed = mosdepth_subworkflow.out.regions_bed.map { meta, bed -> bed }
-            
-            // Prepare reference channel for Spectre CNV calling
-            ch_spectre_reference = ch_snv_vcf
-                .map { meta, vcf_file -> 
-                    [id: meta.id]
-                }
-                .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))
-                .map { meta, fasta -> tuple(meta, fasta) }
-            
-            // Extract just the VCF file from the ch_snv_vcf channel
-            ch_spectre_clair3_vcf = ch_snv_vcf.map { meta, vcf -> vcf }
-    
-            cnv_subworkflow(
-                ch_spectre_mosdepth_bed,
-                ch_spectre_reference, 
-                ch_spectre_clair3_vcf,              
-                params.spectre_metadata,
-                params.spectre_blacklist
-            )
+        } 
+        
+        else {
 
-            ch_cnv_vcf = cnv_subworkflow.out.vcf
+        ch_combined = ch_snv_vcf
+        .join(mosdepth_subworkflow.out.regions_bed, by: 0)
+        // Result: [meta, vcf_file, bed_file]
+  
+        // Transform for cnv_subworkflow - assuming it expects separate channels
+        ch_spectre_bed = ch_combined.map { meta, vcf, bed -> bed }
+        ch_spectre_vcf = ch_combined.map { meta, vcf, bed -> vcf }
+        
+        cnv_subworkflow(
+        ch_spectre_bed,
+        ch_fasta,
+        ch_spectre_vcf,
+        params.spectre_metadata,
+        params.spectre_blacklist
+        )
+
+        ch_cnv_vcf = cnv_subworkflow.out.vcf
+        
         }
+
     } else {
         // Create empty channel when CNV calling is disabled
         ch_cnv_vcf = Channel.empty()
@@ -591,12 +587,26 @@ workflow nanoraredx {
 */
 
     if (params.unify_geneyx) {
+
+        ch_combined = ch_sv_vcf
+        .join(ch_cnv_vcf, by: 0, remainder: true)
+        .join(ch_str_vcf, by: 0, remainder: true)
+
+        
         unify_vcf_subworkflow(
-            params.sv ? ch_sv_vcf : Channel.value([[:], []]),
-            params.cnv ? ch_cnv_vcf : Channel.value([[:], []]),
-            params.str ? ch_str_vcf : Channel.value([[:], []]),
-            params.modify_str_calls ?: false
-        )
+        ch_combined.map { meta, sv, cnv, str -> [meta, sv] },
+        ch_combined.map { meta, sv, cnv, str -> [meta, cnv ?: []] },
+        ch_combined.map { meta, sv, cnv, str -> [meta, str ?: []] },
+        params.modify_str_calls ?: false
+    )
+
+    //  unify_vcf_subworkflow(
+        //     params.sv ? ch_sv_vcf : Channel.value([[:], []]),
+        //     params.cnv ? ch_cnv_vcf : Channel.value([[:], []]),
+        //     params.str ? ch_str_vcf : Channel.value([[:], []]),
+        //     params.modify_str_calls ?: false
+        // )
+
     }
 }
 

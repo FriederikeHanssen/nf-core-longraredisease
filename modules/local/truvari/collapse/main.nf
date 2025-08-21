@@ -1,6 +1,6 @@
 process TRUVARI_COLLAPSE {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
     container "biocontainers/truvari:5.3.0--pyhdfd78af_0"

@@ -1,9 +1,9 @@
 //Alignment with MINIMAP2
 
-include { MINIMAP2_INDEX as MINIMAP2_INDEX_BAM } from '../../modules/nf-core/minimap2/index/main'
-include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_BAM } from '../../modules/nf-core/minimap2/align/main'
+include { MINIMAP2_INDEX  } from '../../modules/nf-core/minimap2/index/main'
+include { MINIMAP2_ALIGN } from '../../modules/nf-core/minimap2/align/main'
 
-workflow minimap2_align_bam_subworkflow {
+workflow minimap2_align_subworkflow {
 
     take:
     ch_fasta
@@ -11,10 +11,11 @@ workflow minimap2_align_bam_subworkflow {
 
     main:
 
+    ch_versions = Channel.empty()
     // 1. Generate index (runs once)
-    MINIMAP2_INDEX_BAM(ch_fasta)
-    ch_minimap_index = MINIMAP2_INDEX_BAM.out.index
-    minimap2_version = MINIMAP2_INDEX_BAM.out.versions
+    MINIMAP2_INDEX(ch_fasta)
+    ch_minimap_index = MINIMAP2_INDEX.out.index
+    ch_versions = ch_versions.mix(MINIMAP2_INDEX.out.versions)
 
     // 2. Update meta so it is updated with sample id
     ch_align_input = ch_fastq
@@ -30,12 +31,12 @@ workflow minimap2_align_bam_subworkflow {
     def cigar_paf_format = false
     def cigar_bam = false
 
-    MINIMAP2_ALIGN_BAM(
+    MINIMAP2_ALIGN(
         ch_align_input.map { meta_sample, reads, meta_index, index -> 
             [meta_sample, reads] 
         },
         ch_align_input.map { meta_sample, reads, meta_index, index -> 
-            [meta_index, index]  // Use sample meta for index too
+            [meta_index, index]  // Use sample meta for index too as otherwise runs one sample at a time 
         },
         bam_format,
         bam_index_extension,
@@ -43,11 +44,12 @@ workflow minimap2_align_bam_subworkflow {
         cigar_bam
     )
 
-    ch_sorted_bam = MINIMAP2_ALIGN_BAM.out.bam
-    ch_sorted_bai = MINIMAP2_ALIGN_BAM.out.index
+    ch_sorted_bam = MINIMAP2_ALIGN.out.bam
+    ch_sorted_bai = MINIMAP2_ALIGN.out.index
 
+     ch_versions = ch_versions.mix(MINIMAP2_ALIGN.out.versions)
     emit:
-    ch_sorted_bam
-    ch_sorted_bai
-    versions = minimap2_version
+    bam = ch_sorted_bam
+    bai= ch_sorted_bai
+    versions = ch_versions
 }

@@ -15,52 +15,52 @@
                 "description": "Unique sample identifier"
             },
             "bam_dir": {
-                "type": "string",
-                "format": "directory-path",
+                "anyOf": [
+                    {"type": "string", "format": "directory-path"},
+                    {"type": "string", "maxLength": 0}
+                ],
                 "description": "Directory containing unaligned BAM files for this sample",
                 "help_text": "Directory path containing unaligned BAM files. Used when --align_with_bam is enabled."
             },
             "fastq_dir": {
-                "type": "string", 
-                "format": "directory-path",
+                "anyOf": [
+                    {"type": "string", "format": "directory-path"},
+                    {"type": "string", "maxLength": 0}
+                ],
                 "description": "Directory containing FASTQ files for this sample",
                 "help_text": "Directory path containing FASTQ files (.fastq.gz or .fq.gz). Used when --align_with_fastq is enabled."
             },
             "aligned_bam": {
-                "type": "string",
-                "format": "file-path",
-                "pattern": "^\\S+\\.bam$",
+                "anyOf": [
+                    {"type": "string", "format": "file-path", "pattern": "^\\S+\\.bam$"},
+                    {"type": "string", "maxLength": 0}
+                ],
                 "description": "Path to pre-aligned BAM file",
                 "help_text": "Full path to a pre-aligned BAM file. The corresponding .bai index file must exist in the same directory. Used when neither --align_with_fastq nor --align_with_bam are enabled."
             },
             "methyl_bam": {
-                "type": "string",
-                "format": "file-path", 
-                "pattern": "^\\S+\\.bam$",
+                "anyOf": [
+                    {"type": "string", "format": "file-path", "pattern": "^\\S+\\.bam$"},
+                    {"type": "string", "maxLength": 0}
+                ],
                 "description": "Path to BAM file with methylation information",
                 "help_text": "Full path to a BAM file containing methylation calls. Required when --methyl is enabled and --align_with_bam is not used. The corresponding .bai index file must exist in the same directory."
             },
             "hpo_terms": {
-                "type": "string",
-                "pattern": "^HP:\\d{7}(;HP:\\d{7})*$",
-                "description": "Human Phenotype Ontology terms separated by semicolons",
-                "help_text": "HPO terms describing the phenotype, separated by semicolons (e.g., HP:0002721;HP:0002110;HP:0500093). Used for variant prioritization.",
-                "examples": ["HP:0002721;HP:0002110;HP:0500093"]
+                "anyOf": [
+                    {"type": "string", "pattern": "^HP:\\d{7}(;HP:\\d{7})*$"},
+                    {"type": "string", "maxLength": 0}
+                ],
+                "description": "HPO terms for phenotype annotation (optional)",
+                "help_text": "Human Phenotype Ontology terms in the format HP:0000000. Multiple terms should be separated by semicolons. Leave empty if no HPO terms are available."
             }
         },
-        "required": ["sample_id", "hpo_terms"],
+        "required": ["sample_id"],
         "anyOf": [
-            {"required": ["bam_dir"], "description": "For unaligned BAM workflow"},
-            {"required": ["fastq_dir"], "description": "For FASTQ alignment workflow"}, 
-            {"required": ["aligned_bam"], "description": "For pre-aligned BAM workflow"}
+            {"required": ["bam_dir"], "not": {"properties": {"bam_dir": {"maxLength": 0}}}},
+            {"required": ["fastq_dir"], "not": {"properties": {"fastq_dir": {"maxLength": 0}}}},
+            {"required": ["aligned_bam"], "not": {"properties": {"aligned_bam": {"maxLength": 0}}}}
         ],
-        "additionalProperties": false,
-        "errorMessage": {
-            "properties": {
-                "sample_id": "Sample ID must be provided and cannot contain spaces",
-                "hpo_terms": "HPO terms must be in the format HP:0000000, separated by semicolons if multiple"
-            },
-            "anyOf": "Each sample must have either 'bam_dir', 'fastq_dir', or 'aligned_bam' specified"
-        }
+        "additionalProperties": false
     }
 }

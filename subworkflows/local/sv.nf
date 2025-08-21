@@ -55,10 +55,33 @@ workflow sv_subworkflow {
 
     // Apply filtering if requested
     if (filter_sv) {
+        // Join VCF channels with their corresponding mosdepth data by sample ID
+        ch_sniffles_with_mosdepth = ch_sniffles_input
+            .join(ch_mosdepth_summary, by: 0)  // Join by sample ID
+            .join(ch_mosdepth_bed, by: 0)      // Join bed file by sample ID too
+            .map { meta, vcf, tbi, summary, bed -> 
+                [meta, vcf, tbi, summary, bed]
+            }
+
+        ch_svim_with_mosdepth = ch_svim_input
+            .join(ch_mosdepth_summary, by: 0)
+            .join(ch_mosdepth_bed, by: 0)
+            .map { meta, vcf, tbi, summary, bed -> 
+                [meta, vcf, tbi, summary, bed]
+            }
+
+        ch_cutesv_with_mosdepth = ch_cutesv_input
+            .join(ch_mosdepth_summary, by: 0)
+            .join(ch_mosdepth_bed, by: 0)
+            .map { meta, vcf, tbi, summary, bed -> 
+                [meta, vcf, tbi, summary, bed]
+            }
+
+        // Now call filter processes with properly aligned data
         FILTER_SV_SNIFFLES(
-            ch_sniffles_input,
-            ch_mosdepth_summary,
-            ch_mosdepth_bed,
+            ch_sniffles_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, vcf, tbi] },
+            ch_sniffles_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, summary] },
+            ch_sniffles_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, bed] },
             chromosome_codes,
             min_read_support,
             min_read_support_limit,
@@ -66,9 +89,9 @@ workflow sv_subworkflow {
         )
 
         FILTER_SV_SVIM(
-            ch_svim_input,
-            ch_mosdepth_summary,
-            ch_mosdepth_bed,
+            ch_svim_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, vcf, tbi] },
+            ch_svim_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, summary] },
+            ch_svim_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, bed] },
             chromosome_codes,
             min_read_support,
             min_read_support_limit,
@@ -76,9 +99,9 @@ workflow sv_subworkflow {
         )
 
         FILTER_SV_CUTESV(
-            ch_cutesv_input,
-            ch_mosdepth_summary,
-            ch_mosdepth_bed,
+            ch_cutesv_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, vcf, tbi] },
+            ch_cutesv_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, summary] },
+            ch_cutesv_with_mosdepth.map { meta, vcf, tbi, summary, bed -> [meta, bed] },
             chromosome_codes,
             min_read_support,
             min_read_support_limit,
@@ -96,7 +119,7 @@ workflow sv_subworkflow {
         ch_svim_vcf_tbi = ch_svim_input
         ch_cutesv_vcf_tbi = ch_cutesv_input
     }
-
+    
     // Extract VCF and TBI separately for individual outputs
     ch_sniffles_vcf_gz = ch_sniffles_vcf_tbi.map { meta, vcf_gz, tbi -> tuple(meta, vcf_gz) }
     ch_sniffles_tbi = ch_sniffles_vcf_tbi.map { meta, vcf_gz, tbi -> tuple(meta, tbi) }
