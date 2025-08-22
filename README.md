@@ -53,8 +53,8 @@ Will be updated later in the project
 
 **1. Clone the Repository**
 ```bash
-git clone <repository-url>
-cd nanoraredx
+git clone https://github.com/nourmahfel/nf-core-nanoraredx.git
+cd nf-core-nanoraredx
 ```
 **2. Test Installation**
 ```bash
