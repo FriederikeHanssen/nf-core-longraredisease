@@ -53,8 +53,8 @@ Will be updated later in the project
 
 **1. Clone the Repository**
 ```bash
-git clone https://github.com/nourmahfel/nf-core-nanoraredx.git
-cd nf-core-nanoraredx
+git clone <repository-url>
+cd nanoraredx
 ```
 **2. Test Installation**
 ```bash
@@ -62,7 +62,7 @@ nextflow run main.nf -profile test,docker
 ```
 **3. Run with Your Data**
 ```bash
-nextflow run main.nf     --bam_dir /path/to/bam/files  --outdir results     -profile docker
+nextflow run main.nf     --bam_dir /path/to/bam/files     --fasta_file /path/to/reference.fasta     --outdir results     -profile docker
 ```
 ---
 
