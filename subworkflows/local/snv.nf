@@ -66,7 +66,7 @@ workflow snv_subworkflow {
             [[:], []]
         )
 
-        ch_deepvariant_versions = DEEPVARIANT_RUNDEEPVARIANT.out.versions
+        ch_versions = ch_versions.mix(DEEPVARIANT_RUNDEEPVARIANT.out.versions)
 
         if (filter_pass_snv) {
             ch_deepvariant_vcf = DEEPVARIANT_RUNDEEPVARIANT.out.vcf
@@ -92,7 +92,6 @@ workflow snv_subworkflow {
         // Create empty channels when DeepVariant is not run
         ch_final_deepvariant_vcf = Channel.empty()
         ch_final_deepvariant_tbi = Channel.empty()
-        ch_deepvariant_versions = Channel.empty()
     }
 
     emit:
@@ -104,6 +103,5 @@ workflow snv_subworkflow {
     clair3_pileup_tbi    = CLAIR3.out.pileup_tbi    // Pileup TBI
     deepvariant_vcf      = ch_final_deepvariant_vcf // Filtered or unfiltered DeepVariant VCF
     deepvariant_tbi      = ch_final_deepvariant_tbi // Corresponding index
-    clair3_versions      = ch_versions              // All collected versions
-    deepvariant_versions = ch_deepvariant_versions  // DeepVariant versions
+    versions = ch_versions  
 }

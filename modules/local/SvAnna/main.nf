@@ -13,7 +13,7 @@ process SVANNA_PRIORITIZE {
     tuple val(meta), path("*.html"), emit: html_report, optional: true
     tuple val(meta), path("*.csv"), emit: csv_results, optional: true  
     tuple val(meta), path("*.vcf.gz"), emit: vcf_results, optional: true
-    tuple val(meta), path("versions.yml"), emit: versions
+    path("versions.yml"), emit: versions
 
     when:
     task.ext.when == null || task.ext.when

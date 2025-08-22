@@ -19,6 +19,8 @@ workflow cnv_subworkflow {
     //
     // MODULE: Run SPECTRE CNV calling
     //
+    ch_versions = Channel.empty()
+
     SPECTRE(
         ch_mosdepth_output,
         ch_reference,
@@ -26,12 +28,16 @@ workflow cnv_subworkflow {
         ch_metadata,
         ch_blacklist
     )
+
+    ch_versions = ch_versions.mix(SPECTRE.out.versions)
     
     ROUND_DP(SPECTRE.out.vcf)
 
+    ch_versions = ch_versions.mix(ROUND_DP.out.versions)
+
     BCFTOOLS_SORT_SPECTRE(ROUND_DP.out.vcf)
     
-   
+   ch_versions = ch_versions.mix(BCFTOOLS_SORT_SPECTRE.out.versions)
 
     emit:
     vcf       = BCFTOOLS_SORT_SPECTRE.out.vcf
@@ -40,5 +46,6 @@ workflow cnv_subworkflow {
     bed_index = SPECTRE.out.bed_index
     spc       = SPECTRE.out.spc
     winstats  = SPECTRE.out.winstats
+    versions  = ch_versions
 
 }

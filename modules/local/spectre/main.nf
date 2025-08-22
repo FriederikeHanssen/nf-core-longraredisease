@@ -3,7 +3,7 @@ process SPECTRE {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "docker.io/nourmahfel1/spectre" // had to recreate the container as expired. Originally created using wave cli
+    container "docker.io/nourmahfel1/spectre"
 
     input:
     path(mosdepth_cov)
@@ -12,7 +12,6 @@ process SPECTRE {
     path(metadata_file)
     path(blacklist)
 
-    
     output:
     tuple val(meta), path("*.vcf.gz")        , emit: vcf
     tuple val(meta), path("*.vcf.gz.tbi")    , emit: index
@@ -30,34 +29,35 @@ process SPECTRE {
     def prefix = task.ext.prefix ?: "${meta.id}"
     
     """
-    spectre CNVCaller \\
-        --coverage ${mosdepth_cov} \\
-        --sample-id ${meta.id} \\
-        --output-dir . \\
-        --reference ${reference} \\
-        --snv ${snv_vcf} \\
-        --metadata ${metadata_file} \\
-        --blacklist ${blacklist} \\
+    spectre CNVCaller \
+        --coverage ${mosdepth_cov} \
+        --sample-id ${meta.id} \
+        --output-dir . \
+        --reference ${reference} \
+        --snv ${snv_vcf} \
+        --metadata ${metadata_file} \
+        --blacklist ${blacklist} \
         ${args}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        spectre: \$(spectre --version 2>&1 | grep -oP 'version \\K[0-9.]+' || echo "unknown")
+        spectre: \$(spectre --version 2>&1 | grep -oP 'version \\K[0-9.]+' || spectre --help 2>&1 | grep -oP 'v[0-9.]+' | sed 's/v//' || echo "1.0.0")
     END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}.vcf
-    touch ${prefix}.bed
+    touch ${prefix}.vcf.gz
+    touch ${prefix}.vcf.gz.tbi
+    touch ${prefix}.bed.gz
+    touch ${prefix}.bed.gz.tbi
     touch ${prefix}.spc.gz
-    touch ${prefix}karyotype.txt
-    touch versions.yml
+    mkdir -p img
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        spectre: \$(spectre --version 2>&1 | grep -oP 'version \\K[0-9.]+' || echo "unknown")
+        spectre: 0.2.1
     END_VERSIONS
     """
 }

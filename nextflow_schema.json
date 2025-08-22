@@ -51,58 +51,69 @@
             "properties": {
                 "align_with_fastq": {
                     "type": "boolean",
+                    "default": false,
                     "description": "Align FASTQ files to reference genome using minimap2.",
                     "fa_icon": "fas fa-align-left",
                     "help_text": "Enable this option when you have raw FASTQ files that need to be aligned to a reference genome."
                 },
                 "align_with_bam": {
-                    "type": "boolean", 
+                    "type": "boolean",
+                    "default": true,
                     "description": "Convert unaligned BAM files to FASTQ and align to reference genome.",
                     "fa_icon": "fas fa-file-archive",
                     "help_text": "Enable this option when you have unaligned BAM files that need to be converted to FASTQ and then aligned."
                 },
                 "sv": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Enable structural variant calling.",
                     "fa_icon": "fas fa-dna"
                 },
                 "snv": {
-                    "type": "boolean", 
+                    "type": "boolean",
+                    "default": true,
                     "description": "Enable single nucleotide variant calling.",
                     "fa_icon": "fas fa-search"
                 },
                 "cnv": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Enable copy number variant calling.",
                     "fa_icon": "fas fa-chart-line"
                 },
                 "str": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Enable short tandem repeat analysis.",
                     "fa_icon": "fas fa-repeat"
                 },
                 "methyl": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Enable methylation calling.",
                     "fa_icon": "fas fa-flask"
                 },
                 "phase": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Enable phasing analysis.",
                     "fa_icon": "fas fa-link"
                 },
                 "qc": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Enable quality control analysis.",
                     "fa_icon": "fas fa-check-circle"
                 },
                 "generate_bam_stats": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Generate BAM statistics using samtools.",
                     "fa_icon": "fas fa-chart-bar"
                 },
                 "generate_coverage": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Generate coverage analysis.",
                     "fa_icon": "fas fa-layer-group"
                 }
@@ -113,37 +124,384 @@
             "type": "object",
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
+            "required": ["fasta_file"],
             "properties": {
-                "genome": {
-                    "type": "string",
-                    "description": "Name of iGenomes reference.",
-                    "fa_icon": "fas fa-book",
-                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
-                },
-                "fasta": {
+                "fasta_file": {
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "help_text": "This parameter is mandatory. Path to the reference genome FASTA file.",
                     "fa_icon": "far fa-file-code"
                 },
-                "igenomes_ignore": {
-                    "type": "boolean",
-                    "description": "Do not load the iGenomes reference config.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                "bed_file": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to BED file for coverage analysis (optional).",
+                    "help_text": "Optional BED file for targeted coverage analysis with mosdepth.",
+                    "fa_icon": "fas fa-bed"
                 },
-                "igenomes_base": {
+                "sniffles_tandem_file": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to tandem repeat BED file for Sniffles.",
+                    "fa_icon": "fas fa-file"
+                },
+                "chromosome_codes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of chromosome codes to process.",
+                    "fa_icon": "fas fa-list"
+                }
+            }
+        },
+        "sv_calling_options": {
+            "title": "Structural Variant Calling",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options for structural variant calling and filtering.",
+            "properties": {
+                "consensuSV": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable multi-caller SV filtering.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "use_survivor_bed": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use SURVIVOR for BED output.",
+                    "fa_icon": "fas fa-bed"
+                },
+                "max_distance_breakpoints": {
+                    "type": "integer",
+                    "default": 1000,
+                    "description": "Maximum distance between breakpoints for merging.",
+                    "fa_icon": "fas fa-ruler"
+                },
+                "min_supporting_callers": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Minimum number of supporting callers.",
+                    "fa_icon": "fas fa-users"
+                },
+                "account_for_type": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Account for SV type in merging.",
+                    "fa_icon": "fas fa-cog"
+                },
+                "account_for_sv_strands": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Account for SV strands in merging.",
+                    "fa_icon": "fas fa-cog"
+                },
+                "estimate_distanced_by_sv_size": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Estimate distance by SV size.",
+                    "fa_icon": "fas fa-cog"
+                },
+                "min_sv_size": {
+                    "type": "integer",
+                    "default": 30,
+                    "description": "Minimum SV size to consider.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "refdist": {
+                    "type": "integer",
+                    "default": 500,
+                    "description": "Reference distance for Truvari.",
+                    "fa_icon": "fas fa-ruler"
+                },
+                "pctsim": {
+                    "type": "number",
+                    "default": 0.7,
+                    "description": "Percent similarity for Truvari.",
+                    "fa_icon": "fas fa-percentage"
+                },
+                "pctseq": {
+                    "type": "number",
+                    "default": 0.7,
+                    "description": "Percent sequence similarity for Truvari.",
+                    "fa_icon": "fas fa-percentage"
+                },
+                "passonly": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Only consider PASS variants.",
+                    "fa_icon": "fas fa-check"
+                },
+                "dup_to_ins": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Convert duplications to insertions.",
+                    "fa_icon": "fas fa-exchange-alt"
+                },
+                "primary_sv_caller": {
+                    "type": "string",
+                    "default": "sniffles",
+                    "enum": ["sniffles", "cutesv", "svim"],
+                    "description": "Primary SV caller to use if no consensuSV.",
+                    "fa_icon": "fas fa-tools"
+                },
+                "filter_sv": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable SV filtering by coverage.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "filter_pass_sv": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Filter PASS variants only in SV.",
+                    "fa_icon": "fas fa-check-circle"
+                },
+                "min_read_support": {
+                    "type": "string",
+                    "default": "auto",
+                    "description": "Minimum read support for SVs.",
+                    "fa_icon": "fas fa-support"
+                },
+                "min_read_support_limit": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Minimum read support limit.",
+                    "fa_icon": "fas fa-limit"
+                }
+            }
+        },
+        "sv_annotation_options": {
+            "title": "SV Annotation",
+            "type": "object",
+            "fa_icon": "fas fa-tags",
+            "description": "Options for SV annotation with SvAnna.",
+            "properties": {
+                "svanna_db": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "The base path to the igenomes reference files",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "default": "s3://ngi-igenomes/igenomes/"
+                    "description": "Path to the SvAnna database directory.",
+                    "fa_icon": "fas fa-database"
+                },
+                "output_format": {
+                    "type": "string",
+                    "default": "html",
+                    "enum": ["html", "tsv"],
+                    "description": "Output format for SvAnna results.",
+                    "fa_icon": "fas fa-file-code"
+                }
+            }
+        },
+        "snv_calling_options": {
+            "title": "SNV Calling",
+            "type": "object",
+            "fa_icon": "fas fa-search",
+            "description": "Options for single nucleotide variant calling.",
+            "properties": {
+                "deepvariant": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable DeepVariant calling.",
+                    "fa_icon": "fas fa-brain"
+                },
+                "merge_snv": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Merge SNV calls from multiple callers.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "filter_pass_snv": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Filter PASS variants only in SNV.",
+                    "fa_icon": "fas fa-check-circle"
+                },
+                "clair3_model": {
+                    "type": "string",
+                    "default": "ont",
+                    "description": "Clair3 model to use.",
+                    "fa_icon": "fas fa-brain"
+                },
+                "clair3_platform": {
+                    "type": "string",
+                    "default": "ont",
+                    "description": "Clair3 platform.",
+                    "fa_icon": "fas fa-microchip"
+                }
+            }
+        },
+        "phasing_options": {
+            "title": "Phasing Options",
+            "type": "object",
+            "fa_icon": "fas fa-link",
+            "description": "Options for phasing analysis.",
+            "properties": {
+                "phase_with_sv": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Include SVs in phasing analysis.",
+                    "fa_icon": "fas fa-dna"
+                }
+            }
+        },
+        "cnv_calling_options": {
+            "title": "CNV Calling",
+            "type": "object",
+            "fa_icon": "fas fa-chart-line",
+            "description": "Options for copy number variant calling.",
+            "properties": {
+                "run_qdnaseq": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Run QDNAseq for CNV calling.",
+                    "fa_icon": "fas fa-chart-area"
+                },
+                "genome_build": {
+                    "type": "string",
+                    "default": "hg38",
+                    "enum": ["hg19", "hg38"],
+                    "description": "Genome build for CNV calling.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "qdnaseq_bin_size": {
+                    "type": "integer",
+                    "default": 1000,
+                    "description": "Bin size for QDNAseq.",
+                    "fa_icon": "fas fa-th"
+                },
+                "method": {
+                    "type": "string",
+                    "default": "cutoff",
+                    "description": "Method for CNV calling.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "cutoff": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "General cutoff value.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "cutoff_del": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "Cutoff for deletions.",
+                    "fa_icon": "fas fa-minus"
+                },
+                "cutoff_loss": {
+                    "type": "number",
+                    "default": 1.5,
+                    "description": "Cutoff for losses.",
+                    "fa_icon": "fas fa-arrow-down"
+                },
+                "cutoff_gain": {
+                    "type": "number",
+                    "default": 2.5,
+                    "description": "Cutoff for gains.",
+                    "fa_icon": "fas fa-arrow-up"
+                },
+                "cellularity": {
+                    "type": "number",
+                    "default": 1,
+                    "description": "Sample cellularity.",
+                    "fa_icon": "fas fa-cell"
+                },
+                "use_test_data": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use test data for Spectre CNV calling.",
+                    "fa_icon": "fas fa-vial"
+                },
+                "spectre_metadata": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to Spectre metadata file.",
+                    "fa_icon": "fas fa-file-alt"
+                },
+                "spectre_blacklist": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to Spectre blacklist BED file.",
+                    "fa_icon": "fas fa-ban"
+                },
+                "spectre_test_mosdepth": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to test mosdepth file for Spectre CNV calling.",
+                    "fa_icon": "fas fa-vial",
+                    "hidden": true
+                },
+                "spectre_test_fasta_file": {
+                    "type": "string", 
+                    "format": "file-path",
+                    "description": "Path to test FASTA file for Spectre CNV calling.",
+                    "fa_icon": "fas fa-vial",
+                    "hidden": true
+                },
+                "spectre_test_clair3_vcf": {
+                    "type": "string",
+                    "format": "file-path", 
+                    "description": "Path to test Clair3 VCF for Spectre CNV calling.",
+                    "fa_icon": "fas fa-vial",
+                    "hidden": true
+                }
+            }
+        },
+        "str_analysis_options": {
+            "title": "STR Analysis",
+            "type": "object",
+            "fa_icon": "fas fa-repeat",
+            "description": "Options for short tandem repeat analysis.",
+            "properties": {
+                "str_bed_file": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to STR BED file.",
+                    "fa_icon": "fas fa-bed"
+                }
+            }
+        },
+        "vcf_unification_options": {
+            "title": "VCF Unification",
+            "type": "object",
+            "fa_icon": "fas fa-compress-arrows-alt",
+            "description": "Options for VCF unification.",
+            "properties": {
+                "unify_geneyx": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable VCF unification.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "modify_str_calls": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Modify STR calls during unification.",
+                    "fa_icon": "fas fa-edit"
+                }
+            }
+        },
+        "output_options": {
+            "title": "Output Options",
+            "type": "object",
+            "fa_icon": "fas fa-file-export",
+            "description": "Options for output formats.",
+            "properties": {
+                "vcf_output": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Generate VCF output.",
+                    "fa_icon": "fas fa-file-code"
+                },
+                "snf_output": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Generate SNF output.",
+                    "fa_icon": "fas fa-file-alt"
                 }
             }
         },
@@ -289,6 +647,18 @@
                     "fa_icon": "far calendar",
                     "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
                     "hidden": true
+                },
+                "help_full": {
+                    "type": "boolean",
+                    "description": "Show full help message.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-question-circle"
+                },
+                "show_hidden": {
+                    "type": "boolean",
+                    "description": "Show hidden parameters.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-eye-slash"
                 }
             }
         }
@@ -302,6 +672,30 @@
         },
         {
             "$ref": "#/$defs/reference_genome_options"
+        },
+        {
+            "$ref": "#/$defs/sv_calling_options"
+        },
+        {
+            "$ref": "#/$defs/sv_annotation_options"
+        },
+        {
+            "$ref": "#/$defs/snv_calling_options"
+        },
+        {
+            "$ref": "#/$defs/phasing_options"
+        },
+        {
+            "$ref": "#/$defs/cnv_calling_options"
+        },
+        {
+            "$ref": "#/$defs/str_analysis_options"
+        },
+        {
+            "$ref": "#/$defs/vcf_unification_options"
+        },
+        {
+            "$ref": "#/$defs/output_options"
         },
         {
             "$ref": "#/$defs/institutional_config_options"

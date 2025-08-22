@@ -23,13 +23,14 @@ workflow bam2fastq_subworkflow {
         ch_fasta,
         ch_fai
     )
+    ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions)
 
     SAMTOOLS_FASTQ(
         SAMTOOLS_MERGE.out.bam,
         false  // interleave parameter set to false
     )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
     
-    ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions)
     
 
 emit:
@@ -37,6 +38,7 @@ emit:
     interleaved = SAMTOOLS_FASTQ.out.interleaved // channel: [meta, interleaved.fastq] - interleaved file
     singleton   = SAMTOOLS_FASTQ.out.singleton   // channel: [meta, singleton.fastq.gz] - singleton reads
     other       = SAMTOOLS_FASTQ.out.other       // channel: [meta, other.fastq.gz] - unmapped/other reads            // channel: [versions.yml]
+    versions    = ch_versions                    // channel: [versions.yml] - versions of tools used in the workflow
 }
 
 

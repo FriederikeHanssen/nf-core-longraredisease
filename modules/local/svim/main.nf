@@ -2,7 +2,6 @@ process SVIM {
     tag "$meta.id"
     label 'process_high'
 
-
     container "biocontainers/svim:2.0.0--pyhdfd78af_0"
 
     input:
@@ -20,18 +19,21 @@ process SVIM {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    # Set matplotlib config to avoid warnings
+    export MPLCONFIGDIR=\$(mktemp -d)
+    
     svim alignment \
-    --sample ${meta.id} \\
-    ${prefix} \\
-    ${bam} \\
-    ${fasta} \\
-    $args
+        --sample ${meta.id} \
+        ${prefix} \
+        ${bam} \
+        ${fasta} \
+        $args
 
     mv ${prefix}/variants.vcf ${prefix}.vcf
 
     cat <<-END_VERSIONS > versions.yml 
     "${task.process}":
-        svim: \$(svim --version 2>&1 | sed 's/svim //g')
+        svim: \$(svim --version 2>/dev/null | tail -1 | sed 's/.*svim //g' | sed 's/[^0-9.].*//g')
     END_VERSIONS
     """
     
@@ -41,7 +43,7 @@ process SVIM {
     touch "${prefix}.vcf"
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        svim: \$(svim --version 2>&1 | sed 's/svim //g')
+        svim: 2.0.0
     END_VERSIONS
     """
 }
