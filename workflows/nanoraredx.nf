@@ -403,33 +403,31 @@ workflow nanoraredx {
             )
             ch_versions = ch_versions.mix(consensuSV_subworkflow.out.versions)
 
-            // Extract VCF from the gz_tbi channel for unify_vcf_subworkflow
+
             ch_sv_vcf = consensuSV_subworkflow.out.vcf
                 .map { meta, vcf_gz -> 
                     def clean_meta = [id: meta.id]
                     tuple(clean_meta, vcf_gz) 
                 }
         }
-    // Extract HPO terms while preserving sample order
+
     ch_hpo_terms = ch_samplesheet.map { meta, data -> [meta, data.hpo_terms] }
 
     ch_sv_vcf_with_hpo = ch_sv_vcf
             .join(ch_hpo_terms, by: 0)
+    
+    ch_svanna_db = Channel
+        .fromPath(params.svanna_db, checkIfExists: true)
+        .first()
 
     SVANNA_PRIORITIZE(
             ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> [meta, vcf] },
-            params.svanna_db,
+            ch_svanna_db,
             ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> hpo_terms }
         )
-    // SVANNA_PRIORITIZE(
-    //     ch_sv_vcf,
-    //     params.svanna_db,
-    //     ch_hpo_terms
-    // )
     ch_versions = ch_versions.mix(SVANNA_PRIORITIZE.out.versions)
 
     } else {
-        // Create empty channel when SV calling is disabled
         ch_sv_vcf = Channel.empty()
     }
 /*
