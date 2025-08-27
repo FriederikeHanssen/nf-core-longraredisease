@@ -1,6 +1,6 @@
 process STRAGLR {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
 
     container "biocontainers/straglr:1.5.3--pyhdfd78af_0"
 
