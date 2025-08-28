@@ -1,6 +1,6 @@
 process SVANNA_PRIORITIZE {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
     
     container "docker.io/nourmahfel1/svanna:latest"
 

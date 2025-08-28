@@ -3,6 +3,7 @@ include { SURVIVOR_VCFTOBED                      } from '../../modules/local/sur
 include { BCFTOOLS_MERGE  as BCFTOOLS_MERGE_SV   } from '../../modules/nf-core/bcftools/merge/main.nf'
 include { TABIX_BGZIPTABIX as BGZIP_CONSENSUSV   } from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 include { TRUVARI_COLLAPSE                       } from '../../modules/local/truvari/collapse/main.nf'
+include { BCFTOOLS_SORT as BCFTOOLS_SORT_SV      } from '../../modules/nf-core/bcftools/sort/main.nf'
 include { TABIX_BGZIPTABIX as TRUVARI_GZ         } from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 
 workflow consensuSV_subworkflow {
@@ -28,12 +29,12 @@ workflow consensuSV_subworkflow {
     if (use_survivor_bed) {
         SURVIVOR_MERGE(
             survivor_vcfs,
-            params.max_distance_breakpoints ?: 1000,
-            params.min_supporting_callers ?: 2,
-            params.account_for_type ?: true,
-            params.account_for_sv_strands ?: true,
-            params.estimate_distanced_by_sv_size ?: false,
-            params.min_sv_size ?: 30
+            params.max_distance_breakpoints,
+            params.min_supporting_callers,
+            params.account_for_type,
+            params.account_for_sv_strands,
+            params.estimate_distanced_by_sv_size,
+            params.min_sv_size
         )
 
        
@@ -78,17 +79,18 @@ workflow consensuSV_subworkflow {
 
     TRUVARI_COLLAPSE(
         ch_combined_input,               // tuple val(meta), path(vcf), path(tbi), path(bed)
-        params.refdist ?: 1000,          // val(refdist)
-        params.pctsim ?: 0.7,            // val(pctsim)
-        params.pctseq ?: 0.7,            // val(pctseq)
-        params.passonly ?: true,         // val(passonly)
-        params.dup_to_ins ?: false       // val(dup_to_ins)
+        params.refdist,          // val(refdist)
+        params.pctsim,            // val(pctsim)
+        params.pctseq,            // val(pctseq)
+        params.passonly,         // val(passonly)
+        params.dup_to_ins     // val(dup_to_ins)
     )
 
     ch_versions = ch_versions.mix(TRUVARI_COLLAPSE.out.versions)
 
     // Step 6: Compress and index TRUVARI output
-    TRUVARI_GZ(TRUVARI_COLLAPSE.out.merged_vcf)
+    BCFTOOLS_SORT_SV(TRUVARI_COLLAPSE.out.merged_vcf)
+    TRUVARI_GZ(BCFTOOLS_SORT_SV.out.vcf)
 
     emit:
     vcf = TRUVARI_COLLAPSE.out.merged_vcf

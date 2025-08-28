@@ -1,6 +1,6 @@
 process SPECTRE {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_high'
 
     conda "${moduleDir}/environment.yml"
     container "docker.io/nourmahfel1/spectre"
