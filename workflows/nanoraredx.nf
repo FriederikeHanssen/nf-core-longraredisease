@@ -411,21 +411,25 @@ workflow nanoraredx {
                 }
         }
 
-    ch_hpo_terms = ch_samplesheet.map { meta, data -> [meta, data.hpo_terms] }
+    if (params.annotate_sv) {
+    
+         ch_hpo_terms = ch_samplesheet.map { meta, data -> [meta, data.hpo_terms] }
 
-    ch_sv_vcf_with_hpo = ch_sv_vcf
+         ch_sv_vcf_with_hpo = ch_sv_vcf
             .join(ch_hpo_terms, by: 0)
     
-    ch_svanna_db = Channel
-        .fromPath(params.svanna_db, checkIfExists: true)
-        .first()
+         ch_svanna_db = Channel
+         .fromPath(params.svanna_db, checkIfExists: true)
+         .first()
 
-    SVANNA_PRIORITIZE(
-            ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> [meta, vcf] },
-            ch_svanna_db,
-            ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> hpo_terms }
-        )
-    ch_versions = ch_versions.mix(SVANNA_PRIORITIZE.out.versions)
+         SVANNA_PRIORITIZE(
+                 ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> [meta, vcf] },
+                 ch_svanna_db,
+                 ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> hpo_terms }
+             )
+         ch_versions = ch_versions.mix(SVANNA_PRIORITIZE.out.versions) 
+    
+    }
 
     } else {
         ch_sv_vcf = Channel.empty()
