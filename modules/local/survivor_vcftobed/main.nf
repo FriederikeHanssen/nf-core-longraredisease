@@ -48,7 +48,7 @@ EOF
     awk -F'\\t' 'NF==4 && \$4!="." && \$4!="NA" && \$4!="NAN" && \$4!="0" {print \$4}' | \\
     tr ',' '\\n' | \\
     gawk -f process_coords.awk | \\
-    sort -k1,1 -k2,2n > ${prefix}.bed
+    sort -k1,1V -k2,2n > ${prefix}.bed
 
     # Clean up the awk script
     rm -f process_coords.awk

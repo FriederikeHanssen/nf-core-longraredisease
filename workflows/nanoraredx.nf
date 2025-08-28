@@ -564,12 +564,12 @@ workflow nanoraredx {
         ch_spectre_vcf = ch_combined.map { meta, vcf, bed -> vcf }
 
         ch_spectre_reference = ch_samplesheet
-        .map { meta, data -> meta.id }  // Extract sample ID from samplesheet
+        .map { meta, data -> meta.id }  
         .join(
-            ch_combined.map { meta, vcf, bed -> [meta.id, vcf] },  // [sample_id, vcf]
+            ch_combined.map { meta, vcf, bed -> [meta.id, vcf] },  
             by: 0
         )  // Combine with VCF
-        .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))  // Combine with fasta
+        .combine(Channel.fromPath(params.fasta_file, checkIfExists: true))  
         .map { sample_id, vcf_file, fasta -> 
             def meta = [id: sample_id]
             tuple(meta, fasta)

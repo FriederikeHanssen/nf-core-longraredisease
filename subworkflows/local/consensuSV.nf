@@ -90,10 +90,13 @@ workflow consensuSV_subworkflow {
 
     // Step 6: Compress and index TRUVARI output
     BCFTOOLS_SORT_SV(TRUVARI_COLLAPSE.out.merged_vcf)
+    
+    
     TRUVARI_GZ(BCFTOOLS_SORT_SV.out.vcf)
 
+
     emit:
-    vcf = TRUVARI_COLLAPSE.out.merged_vcf
+    vcf = BCFTOOLS_SORT_SV.out.vcf
     vcf_gz = TRUVARI_GZ.out.gz_tbi
     collapsed_vcf = TRUVARI_COLLAPSE.out.collapsed_vcf
     survivor_vcf = ch_vcf
