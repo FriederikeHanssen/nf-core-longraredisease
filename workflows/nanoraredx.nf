@@ -411,25 +411,46 @@ workflow nanoraredx {
                 }
         }
 
-    if (params.annotate_sv) {
+        if (params.annotate_sv) {
     
-         ch_hpo_terms = ch_samplesheet.map { meta, data -> [meta, data.hpo_terms] }
+        // Filter samplesheet to only include samples with HPO terms
+    
+            ch_samplesheet_with_hpo = ch_samplesheet
+            .filter { meta, data ->
+                data.hpo_terms && data.hpo_terms.trim() != ""
+            }
+    
+            // Create a separate channel for samples without HPO terms (optional, for logging)
+        ch_samplesheet_no_hpo = ch_samplesheet
+        .filter { meta, data ->
+            !data.hpo_terms || data.hpo_terms.trim() == ""
+        }
+        // Log which samples will be skipped
+    
+        ch_samplesheet_no_hpo.view { meta, data ->
+        "SKIPPING sample ${meta.id} - no HPO terms provided"
+        }
+    
+         ch_hpo_terms = ch_samplesheet_with_hpo.map { meta, data -> 
+         [meta, data.hpo_terms] }
 
-         ch_sv_vcf_with_hpo = ch_sv_vcf
-            .join(ch_hpo_terms, by: 0)
+        // Only process VCFs from samples that have HPO terms
     
-         ch_svanna_db = Channel
-         .fromPath(params.svanna_db, checkIfExists: true)
-         .first()
+        ch_sv_vcf_filtered = ch_sv_vcf
+            .join(ch_hpo_terms, by: 0)  // This join will only include samples with HPO terms
 
-         SVANNA_PRIORITIZE(
-                 ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> [meta, vcf] },
-                 ch_svanna_db,
-                 ch_sv_vcf_with_hpo.map { meta, vcf, hpo_terms -> hpo_terms }
-             )
-         ch_versions = ch_versions.mix(SVANNA_PRIORITIZE.out.versions) 
+        ch_svanna_db = Channel
+            .fromPath(params.svanna_db, checkIfExists: true)
+            .first()
+
+        SVANNA_PRIORITIZE(
+            ch_sv_vcf_filtered.map { meta, vcf, hpo_terms -> [meta, vcf] },
+            ch_svanna_db,
+            ch_sv_vcf_filtered.map { meta, vcf, hpo_terms -> hpo_terms }
+        )
+        ch_versions = ch_versions.mix(SVANNA_PRIORITIZE.out.versions)
     
-    }
+        }
 
     } else {
         ch_sv_vcf = Channel.empty()
