@@ -1,0 +1,274 @@
+nextflow_workflow {
+
+    name "Test CNV QDNAseq Subworkflow"
+    script "../subworkflows/local/cnv_qdnaseq.nf"
+    workflow "cnv_qdnaseq_subworkflow"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "cnv_qdnaseq_subworkflow"
+    tag "qdnaseq"
+    tag "cnv"
+    tag "copy_number"
+
+    test("Should run QDNAseq with hg38 genome and default parameters") {
+
+        when {
+            workflow {
+                """
+                // Input BAM with BAI index
+                input[0] = [
+                    [ id:'test_sample_hg38' ],
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam", checkIfExists: true),
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam.bai", checkIfExists: true)
+                ]
+                
+                // QDNAseq parameters
+                input[1] = 'hg38'        // val_genome
+                input[2] = 50            // val_bin_size (50kb)
+                input[3] = 'cutoff'      // val_method
+                input[4] = 2.0           // val_cutoff
+                input[5] = -0.5          // val_cutoff_del
+                input[6] = -0.2          // val_cutoff_loss
+                input[7] = 0.2           // val_cutoff_gain
+                input[8] = 1.0           // val_cellularity
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                
+                // Test all output channels exist and have correct structure
+                { assert workflow.out.calls_vcf != null },
+                { assert workflow.out.segs_vcf != null },
+                { assert workflow.out.raw_calls_vcf != null },
+                { assert workflow.out.raw_segs_vcf != null },
+                { assert workflow.out.plots != null },
+                { assert workflow.out.images != null },
+                { assert workflow.out.tables != null },
+                { assert workflow.out.bed != null },
+                { assert workflow.out.seg != null },
+                { assert workflow.out.all_vcfs != null },
+                { assert workflow.out.versions != null },
+                
+                // Test that outputs have correct metadata
+                { assert workflow.out.calls_vcf.get(0).get(0).id == 'test_sample_hg38' },
+                { assert workflow.out.segs_vcf.get(0).get(0).id == 'test_sample_hg38' },
+                { assert workflow.out.plots.get(0).get(0).id == 'test_sample_hg38' },
+                
+                // Test that all_vcfs channel contains multiple VCF types
+                { assert workflow.out.all_vcfs.size() >= 4 } // Should have 4 VCF types mixed
+            )
+        }
+    }
+
+    test("Should run QDNAseq with hg19 genome and CGHcall method") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_sample_hg19', genome:'hg19', method:'CGHcall' ],
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam", checkIfExists: true),
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam.bai", checkIfExists: true)
+                ]
+                
+                input[1] = 'hg19'        // val_genome
+                input[2] = 100           // val_bin_size (100kb)
+                input[3] = 'CGHcall'     // val_method
+                input[4] = 1.5           // val_cutoff
+                input[5] = -0.6          // val_cutoff_del
+                input[6] = -0.3          // val_cutoff_loss
+                input[7] = 0.3           // val_cutoff_gain
+                input[8] = 0.8           // val_cellularity
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                
+                // Verify metadata preservation
+                { assert workflow.out.calls_vcf.get(0).get(0).id == 'test_sample_hg19' },
+                { assert workflow.out.calls_vcf.get(0).get(0).genome == 'hg19' },
+                { assert workflow.out.calls_vcf.get(0).get(0).method == 'CGHcall' },
+                
+                // Verify all output types are present
+                { assert workflow.out.calls_vcf.size() >= 1 },
+                { assert workflow.out.segs_vcf.size() >= 1 },
+                { assert workflow.out.raw_calls_vcf.size() >= 1 },
+                { assert workflow.out.raw_segs_vcf.size() >= 1 },
+                { assert workflow.out.plots.size() >= 1 },
+                { assert workflow.out.images.size() >= 1 },
+                { assert workflow.out.tables.size() >= 1 },
+                { assert workflow.out.bed.size() >= 1 },
+                { assert workflow.out.seg.size() >= 1 }
+            )
+        }
+    }
+
+    test("Should handle different bin sizes correctly") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_bin_size', bin_size:'15kb' ],
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam", checkIfExists: true),
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam.bai", checkIfExists: true)
+                ]
+                
+                input[1] = 'hg38'        // val_genome
+                input[2] = 15            // val_bin_size (15kb - smaller bins)
+                input[3] = 'cutoff'      // val_method
+                input[4] = 2.0           // val_cutoff
+                input[5] = -0.5          // val_cutoff_del
+                input[6] = -0.2          // val_cutoff_loss
+                input[7] = 0.2           // val_cutoff_gain
+                input[8] = 1.0           // val_cellularity
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.calls_vcf.get(0).get(0).id == 'test_bin_size' },
+                { assert workflow.out.calls_vcf.get(0).get(0).bin_size == '15kb' },
+                { assert workflow.out.versions != null }
+            )
+        }
+    }
+
+    test("Should handle custom thresholds for CNV calling") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_custom_thresholds', analysis:'sensitive' ],
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam", checkIfExists: true),
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam.bai", checkIfExists: true)
+                ]
+                
+                input[1] = 'hg38'        // val_genome
+                input[2] = 50            // val_bin_size
+                input[3] = 'cutoff'      // val_method
+                input[4] = 1.2           // val_cutoff (more sensitive)
+                input[5] = -0.8          // val_cutoff_del (more sensitive)
+                input[6] = -0.4          // val_cutoff_loss (more sensitive)
+                input[7] = 0.4           // val_cutoff_gain (more sensitive)
+                input[8] = 0.9           // val_cellularity
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.calls_vcf.get(0).get(0).id == 'test_custom_thresholds' },
+                { assert workflow.out.calls_vcf.get(0).get(0).analysis == 'sensitive' },
+                
+                // Verify all VCF outputs are generated
+                { assert workflow.out.calls_vcf != null },
+                { assert workflow.out.segs_vcf != null },
+                { assert workflow.out.raw_calls_vcf != null },
+                { assert workflow.out.raw_segs_vcf != null },
+                
+                // Verify mixed channel contains all VCF types
+                { assert workflow.out.all_vcfs.size() >= 4 }
+            )
+        }
+    }
+
+    test("Should preserve complex metadata through workflow") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ 
+                        id:'complex_meta_sample',
+                        patient_id:'P001',
+                        sample_type:'tumor',
+                        tissue:'brain',
+                        platform:'illumina',
+                        library_prep:'wgs'
+                    ],
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam", checkIfExists: true),
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam.bai", checkIfExists: true)
+                ]
+                
+                input[1] = 'hg38'
+                input[2] = 50
+                input[3] = 'cutoff'
+                input[4] = 2.0
+                input[5] = -0.5
+                input[6] = -0.2
+                input[7] = 0.2
+                input[8] = 1.0
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                
+                // Test metadata preservation across all output channels
+                { assert workflow.out.calls_vcf.get(0).get(0).id == 'complex_meta_sample' },
+                { assert workflow.out.calls_vcf.get(0).get(0).patient_id == 'P001' },
+                { assert workflow.out.calls_vcf.get(0).get(0).sample_type == 'tumor' },
+                { assert workflow.out.calls_vcf.get(0).get(0).tissue == 'brain' },
+                { assert workflow.out.calls_vcf.get(0).get(0).platform == 'illumina' },
+                { assert workflow.out.calls_vcf.get(0).get(0).library_prep == 'wgs' },
+                
+                // Test metadata in other channels
+                { assert workflow.out.plots.get(0).get(0).patient_id == 'P001' },
+                { assert workflow.out.images.get(0).get(0).sample_type == 'tumor' },
+                { assert workflow.out.bed.get(0).get(0).tissue == 'brain' }
+            )
+        }
+    }
+
+    test("Should handle low cellularity samples") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'low_cellularity_sample', cellularity:'low' ],
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam", checkIfExists: true),
+                    file("${projectDir}/assets/test_data/bam_aligned/test_aligned.bam.bai", checkIfExists: true)
+                ]
+                
+                input[1] = 'hg38'
+                input[2] = 50
+                input[3] = 'cutoff'
+                input[4] = 2.0
+                input[5] = -0.5
+                input[6] = -0.2
+                input[7] = 0.2
+                input[8] = 0.3           // Low cellularity value
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.calls_vcf.get(0).get(0).id == 'low_cellularity_sample' },
+                { assert workflow.out.calls_vcf.get(0).get(0).cellularity == 'low' },
+                
+                // Ensure all output files are still generated
+                { assert workflow.out.calls_vcf.size() >= 1 },
+                { assert workflow.out.segs_vcf.size() >= 1 },
+                { assert workflow.out.plots.size() >= 1 },
+                { assert workflow.out.tables.size() >= 1 }
+            )
+        }
+    }
+}

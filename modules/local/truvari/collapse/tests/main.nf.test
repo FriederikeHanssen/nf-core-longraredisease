@@ -1,15 +1,14 @@
 nextflow_process {
 
     name "Test Process TRUVARI_COLLAPSE"
-    
     script "../main.nf"
     process "TRUVARI_COLLAPSE"
-   
+
     tag "modules"
     tag "modules_nfcore"
     tag "truvari"
     tag "truvari/collapse"
-   
+
     test("without bed") {
 
         when {
@@ -19,45 +18,32 @@ nextflow_process {
                     [id:'test'],
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz', checkIfExists:true),
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz.tbi', checkIfExists:true),
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv2.vcf.gz', checkIfExists:true),
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv2.vcf.gz.tbi', checkIfExists:true),
                     []
-                    ]
-                input[1] = [
-                    [id:'fasta'],
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta', checkIfExists:true)
-                    ]
-                input[2] = [
-                    [id:'fai'],
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta.fai', checkIfExists:true)
-                    ]
+                ]
+                input[1] = 1000      // refdist
+                input[2] = 0.70      // pctsim
+                input[3] = 0.70      // pctseq
+                input[4] = false     // passonly
+                input[5] = false     // dup_to_ins
                 """
             }
         }
+
         then {
-            assert process.success
             assertAll(
+                { assert process.success },
                 { assert snapshot(
-                    path(process.out.fn_vcf[0][1]).vcf.summary,
-                    file(process.out.fn_tbi[0][1]).name,
-                    path(process.out.fp_vcf[0][1]).vcf.summary,
-                    file(process.out.fp_tbi[0][1]).name,
-                    path(process.out.tp_base_vcf[0][1]).vcf.summary,
-                    file(process.out.tp_base_tbi[0][1]).name,
-                    path(process.out.tp_comp_vcf[0][1]).vcf.summary,
-                    file(process.out.tp_comp_tbi[0][1]).name,
-                    path(process.out.versions[0]).yaml,
-                    process.out.summary,
-                    process.out.versions
+                    path(process.out.merged_vcf[0][1]).vcf.summary,
+                    path(process.out.collapsed_vcf[0][1]).vcf.summary,
+                    path(process.out.versions[0]).yaml
                     ).match()
                 }
             )
         }
     }
-    
-    
+
     test("with bed") {
-        
+
         when {
             process {
                 """
@@ -65,45 +51,32 @@ nextflow_process {
                     [id:'test'],
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz', checkIfExists:true),
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz.tbi', checkIfExists:true),
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv2.vcf.gz', checkIfExists:true),
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv2.vcf.gz.tbi', checkIfExists:true),
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.bed', checkIfExists:true)
-                    ]
-                input[1] = [
-                    [id:'fasta'],
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr21/sequence/genome.fasta', checkIfExists:true)
-                    ]
-                input[2] = [
-                    [id:'fai'],
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr21/sequence/genome.fasta.fai', checkIfExists:true)
-                    ]
+                ]
+                input[1] = 1000      // refdist
+                input[2] = 0.70      // pctsim
+                input[3] = 0.70      // pctseq
+                input[4] = true      // passonly
+                input[5] = false     // dup_to_ins
                 """
             }
         }
+
         then {
-            assert process.success
             assertAll(
+                { assert process.success },
                 { assert snapshot(
-                    path(process.out.fn_vcf[0][1]).vcf.summary,
-                    file(process.out.fn_tbi[0][1]).name,
-                    path(process.out.fp_vcf[0][1]).vcf.summary,
-                    file(process.out.fp_tbi[0][1]).name,
-                    path(process.out.tp_base_vcf[0][1]).vcf.summary,
-                    file(process.out.tp_base_tbi[0][1]).name,
-                    path(process.out.tp_comp_vcf[0][1]).vcf.summary,
-                    file(process.out.tp_comp_tbi[0][1]).name,
-                    path(process.out.versions[0]).yaml,
-                    process.out.summary,
-                    process.out.versions
+                    path(process.out.merged_vcf[0][1]).vcf.summary,
+                    path(process.out.collapsed_vcf[0][1]).vcf.summary,
+                    path(process.out.versions[0]).yaml
                     ).match()
                 }
             )
         }
     }
-    
-    
-    test("without bed -- stub") {
-        options '-stub'
+
+    test("with dup_to_ins flag") {
+
         when {
             process {
                 """
@@ -111,24 +84,55 @@ nextflow_process {
                     [id:'test'],
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz', checkIfExists:true),
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz.tbi', checkIfExists:true),
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv2.vcf.gz', checkIfExists:true),
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv2.vcf.gz.tbi', checkIfExists:true),
                     []
-                    ]
-                input[1] = [
-                    [id:'fasta'],
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta', checkIfExists:true)
-                    ]
-                input[2] = [
-                    [id:'fai'],
-                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta.fai', checkIfExists:true)
-                    ]
+                ]
+                input[1] = 500       // refdist
+                input[2] = 0.80      // pctsim
+                input[3] = 0.80      // pctseq
+                input[4] = false     // passonly
+                input[5] = true      // dup_to_ins
                 """
             }
         }
+
         then {
-            assert process.success
             assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    path(process.out.merged_vcf[0][1]).vcf.summary,
+                    path(process.out.collapsed_vcf[0][1]).vcf.summary,
+                    path(process.out.versions[0]).yaml
+                    ).match()
+                }
+            )
+        }
+    }
+
+    test("without bed - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [id:'test'],
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz', checkIfExists:true),
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/vcf/chr21/simulated_sv.vcf.gz.tbi', checkIfExists:true),
+                    []
+                ]
+                input[1] = 1000      // refdist
+                input[2] = 0.70      // pctsim
+                input[3] = 0.70      // pctseq
+                input[4] = false     // passonly
+                input[5] = false     // dup_to_ins
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
                 { assert snapshot(
                     process.out,
                     path(process.out.versions[0]).yaml
@@ -137,5 +141,4 @@ nextflow_process {
             )
         }
     }
-
 }

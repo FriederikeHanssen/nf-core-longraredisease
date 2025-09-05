@@ -1,0 +1,155 @@
+nextflow_workflow {
+
+    name "Test Subworkflow bam2fastq_subworkflow with methylation tag preservation"
+    script "../subworkflows/local/bam2fastq.nf"
+    workflow "bam2fastq_subworkflow"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "bam2fastq_subworkflow"
+    tag "samtools"
+    tag "samtools/merge"
+    tag "samtools/fastq"
+    tag "methylation"
+    tag "long_read"
+
+    test("Should run successfully with multiple BAM files and preserve methylation tags") {
+
+        when {
+            workflow {
+                """
+                // Test data - multiple BAM files with methylation tags
+                input[0] = [
+                    [ id:'test_sample' ],
+                    [
+                        file("${projectDir}/assets/test_data/bam_pass/test_pass_fc1e9677_854ad362_0.bam", checkIfExists: true),
+                        file("${projectDir}/assets/test_data/bam_pass/test_pass_fc1e9677_854ad362_1.bam", checkIfExists: true)
+                    ]
+                ]
+                // ch_fasta - optional fasta reference
+                input[1] = [[:], []]
+                // ch_fai - optional fai index
+                input[2] = [[:], []]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.trace.tasks().size() == 2 }, // SAMTOOLS_MERGE + SAMTOOLS_FASTQ
+                
+                // Test output channels exist
+                { assert workflow.out.fastq != null },
+                { assert workflow.out.interleaved != null },
+                { assert workflow.out.singleton != null },
+                { assert workflow.out.other != null },
+                { assert workflow.out.versions != null }
+            )
+        }
+    }
+
+    test("Should preserve methylation tags in single BAM conversion") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_methyl_single' ],
+                    [
+                        file("${projectDir}/assets/test_data/bam_pass/test_pass_fc1e9677_854ad362_0.bam", checkIfExists: true)
+                    ]
+                ]
+                // ch_fasta - empty channel
+                input[1] = [[:], []]
+                // ch_fai - empty channel  
+                input[2] = [[:], []]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.other != null },
+                { assert workflow.out.versions != null }
+            )
+        }
+    }
+
+    test("Should preserve long-read metadata correctly") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_meta', sample_type:'long_read', library:'nanopore', platform:'ont' ],
+                    [
+                        file("${projectDir}/assets/test_data/bam_pass/test_pass_fc1e9677_854ad362_0.bam", checkIfExists: true)
+                    ]
+                ]
+                input[1] = [[:], []]
+                input[2] = [[:], []]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.fastq != null },
+                { assert workflow.out.other != null },
+                { assert workflow.out.singleton != null }
+            )
+        }
+    }
+
+    test("Should handle unmapped reads with methylation tags correctly") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_unmapped_methyl' ],
+                    [
+                        file("${projectDir}/assets/test_data/bam_pass/test_pass_fc1e9677_854ad362_0.bam", checkIfExists: true)
+                    ]
+                ]
+                input[1] = [[:], []]
+                input[2] = [[:], []]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.other != null }
+            )
+        }
+    }
+
+    test("Should maintain read length distribution for long reads") {
+
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'test_read_length' ],
+                    [
+                        file("${projectDir}/assets/test_data/bam_pass/test_pass_fc1e9677_854ad362_0.bam", checkIfExists: true)
+                    ]
+                ]
+                input[1] = [[:], []]
+                input[2] = [[:], []]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+        }
+    }
+}

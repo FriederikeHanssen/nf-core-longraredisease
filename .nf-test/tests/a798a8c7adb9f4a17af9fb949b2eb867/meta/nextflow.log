@@ -1,0 +1,99 @@
+Sep-05 15:18:50.910 [main] DEBUG nextflow.cli.Launcher - $> nextflow -quiet -log /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/meta/nextflow.log run /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test-a798a8c7adb9f4a17af9fb949b2eb867.nf -c /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config -c /home/nmahfel/nf-training/nf-core-nanoraredx/tests/nextflow.config -params-file /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/meta/params.json -ansi-log false -profile test,docker -with-trace /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/meta/trace.csv -w /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/work
+Sep-05 15:18:50.975 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.10.4
+Sep-05 15:18:50.996 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/nmahfel/.nextflow/plugins; core-plugins: nf-amazon@2.9.2,nf-azure@1.10.2,nf-cloudcache@0.4.2,nf-codecommit@0.2.2,nf-console@1.1.4,nf-google@1.15.3,nf-tower@1.9.3,nf-wave@1.7.4
+Sep-05 15:18:51.011 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Sep-05 15:18:51.012 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Sep-05 15:18:51.015 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Sep-05 15:18:51.032 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Sep-05 15:18:51.053 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config
+Sep-05 15:18:51.057 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config
+Sep-05 15:18:51.057 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /home/nmahfel/nf-training/nf-core-nanoraredx/tests/nextflow.config
+Sep-05 15:18:51.059 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config
+Sep-05 15:18:51.060 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/nmahfel/nf-training/nf-core-nanoraredx/nextflow.config
+Sep-05 15:18:51.060 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/nmahfel/nf-training/nf-core-nanoraredx/tests/nextflow.config
+Sep-05 15:18:51.090 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /home/nmahfel/.nextflow/secrets/store.json
+Sep-05 15:18:51.098 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@63da207f] - activable => nextflow.secret.LocalSecretsProvider@63da207f
+Sep-05 15:18:51.126 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,docker`
+Sep-05 15:18:52.606 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,docker`
+Sep-05 15:18:52.990 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `test,docker`
+Sep-05 15:18:53.008 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [debug, test, apptainer, wave, docker, gitpod, shifter, mamba, charliecloud, conda, singularity, arm, podman]
+Sep-05 15:18:53.098 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Sep-05 15:18:53.113 [main] INFO  nextflow.cli.CmdRun - Launching `/home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test-a798a8c7adb9f4a17af9fb949b2eb867.nf` [deadly_cuvier] DSL2 - revision: 9267027e3a
+Sep-05 15:18:53.114 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-schema@2.3.0]
+Sep-05 15:18:53.115 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Sep-05 15:18:53.115 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-schema@2.3.0]
+Sep-05 15:18:53.115 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-schema version: 2.3.0
+Sep-05 15:18:53.119 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-schema@2.3.0' resolved
+Sep-05 15:18:53.119 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-schema@2.3.0'
+Sep-05 15:18:53.124 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-schema@2.3.0
+Sep-05 15:18:53.177 [main] DEBUG nextflow.Session - Session UUID: 115eada7-9e58-422c-88d5-ba5f3eb03795
+Sep-05 15:18:53.177 [main] DEBUG nextflow.Session - Run name: deadly_cuvier
+Sep-05 15:18:53.177 [main] DEBUG nextflow.Session - Executor pool size: 20
+Sep-05 15:18:53.184 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Sep-05 15:18:53.190 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=60; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+Sep-05 15:18:53.213 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 24.10.4 build 5934
+  Created: 20-01-2025 16:47 UTC (16:47 BST)
+  System: Linux 5.15.167.4-microsoft-standard-WSL2
+  Runtime: Groovy 4.0.23 on OpenJDK 64-Bit Server VM 11.0.9.1-internal+0-adhoc..src
+  Encoding: UTF-8 (UTF-8)
+  Process: 65754@noram [127.0.1.1]
+  CPUs: 20 - Mem: 15.5 GB (11.5 GB) - Swap: 4 GB (4 GB)
+Sep-05 15:18:53.239 [main] DEBUG nextflow.Session - Work-dir: /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/work [ext2/ext3]
+Sep-05 15:18:53.288 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Sep-05 15:18:53.305 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Sep-05 15:18:53.328 [main] DEBUG nextflow.Session - Observer factory: ValidationObserverFactory
+Sep-05 15:18:53.391 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Sep-05 15:18:53.403 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 21; maxThreads: 1000
+Sep-05 15:18:53.477 [main] DEBUG nextflow.Session - Session start
+Sep-05 15:18:53.479 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/meta/trace.csv
+Sep-05 15:18:53.719 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Sep-05 15:18:54.384 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name bam2fastq_subworkflow:SAMTOOLS_MERGE
+Sep-05 15:18:54.387 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SAMTOOLS_MERGE` matches process bam2fastq_subworkflow:SAMTOOLS_MERGE
+Sep-05 15:18:54.435 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Sep-05 15:18:54.435 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Sep-05 15:18:54.442 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Sep-05 15:18:54.449 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=8; memory=16 GB; capacity=10; pollInterval=100ms; dumpInterval=5m
+Sep-05 15:18:54.468 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Sep-05 15:18:54.611 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:process_low` matches labels `process_low` for process with name bam2fastq_subworkflow:SAMTOOLS_FASTQ
+Sep-05 15:18:54.613 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:SAMTOOLS_FASTQ` matches process bam2fastq_subworkflow:SAMTOOLS_FASTQ
+Sep-05 15:18:54.623 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Sep-05 15:18:54.624 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Sep-05 15:18:54.664 [main] DEBUG nextflow.Session - Config process names validation disabled as requested
+Sep-05 15:18:54.669 [main] DEBUG nextflow.Session - Igniting dataflow network (3)
+Sep-05 15:18:54.672 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > bam2fastq_subworkflow:SAMTOOLS_MERGE
+Sep-05 15:18:54.673 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > bam2fastq_subworkflow:SAMTOOLS_FASTQ
+Sep-05 15:18:54.681 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_0d826cb1622443fd: /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test-a798a8c7adb9f4a17af9fb949b2eb867.nf
+  Script_84f8031e7c6916af: /home/nmahfel/nf-training/nf-core-nanoraredx/tests/../subworkflows/local/bam2fastq.nf
+  Script_e5fccee2ba9a7b56: /home/nmahfel/nf-training/nf-core-nanoraredx/tests/../subworkflows/local/../../modules/nf-core/samtools/merge/main.nf
+  Script_92cb26cdd0e91da1: /home/nmahfel/nf-training/nf-core-nanoraredx/tests/../subworkflows/local/../../modules/nf-core/samtools/fastq/main.nf
+Sep-05 15:18:54.681 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Sep-05 15:18:54.681 [main] DEBUG nextflow.Session - Session await
+Sep-05 15:18:54.934 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Sep-05 15:18:54.937 [Task submitter] INFO  nextflow.Session - [79/d4941c] Submitted process > bam2fastq_subworkflow:SAMTOOLS_MERGE (test_sample)
+Sep-05 15:18:56.327 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: bam2fastq_subworkflow:SAMTOOLS_MERGE (test_sample); status: COMPLETED; exit: 0; error: -; workDir: /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/work/79/d4941cb40175f78b8d42db32b44be4]
+Sep-05 15:18:56.328 [Task monitor] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'TaskFinalizer' minSize=10; maxSize=60; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+Sep-05 15:18:56.344 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Process `bam2fastq_subworkflow:SAMTOOLS_MERGE (test_sample)` is unable to find [UnixPath]: `/home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/work/79/d4941cb40175f78b8d42db32b44be4/test_sample.cram` (pattern: `test_sample.cram`)
+Sep-05 15:18:56.432 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Process bam2fastq_subworkflow:SAMTOOLS_MERGE > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Sep-05 15:18:56.433 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Process bam2fastq_subworkflow:SAMTOOLS_MERGE > Skipping output binding because one or more optional files are missing: fileoutparam<2:1>
+Sep-05 15:18:56.433 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Process bam2fastq_subworkflow:SAMTOOLS_MERGE > Skipping output binding because one or more optional files are missing: fileoutparam<3:1>
+Sep-05 15:18:56.449 [TaskFinalizer-1] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'PublishDir' minSize=10; maxSize=60; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+Sep-05 15:18:56.472 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Sep-05 15:18:56.473 [Task submitter] INFO  nextflow.Session - [3b/a661c1] Submitted process > bam2fastq_subworkflow:SAMTOOLS_FASTQ (test_sample)
+Sep-05 15:18:58.167 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 2; name: bam2fastq_subworkflow:SAMTOOLS_FASTQ (test_sample); status: COMPLETED; exit: 0; error: -; workDir: /home/nmahfel/nf-training/nf-core-nanoraredx/.nf-test/tests/a798a8c7adb9f4a17af9fb949b2eb867/work/3b/a661c151c0d62e2a4948309cb7d0ac]
+Sep-05 15:18:58.178 [TaskFinalizer-2] DEBUG nextflow.processor.TaskProcessor - Process bam2fastq_subworkflow:SAMTOOLS_FASTQ > Skipping output binding because one or more optional files are missing: fileoutparam<1:1>
+Sep-05 15:18:58.186 [main] DEBUG nextflow.Session - Session await > all processes finished
+Sep-05 15:18:58.267 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Sep-05 15:18:58.268 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Sep-05 15:18:58.270 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'TaskFinalizer' shutdown completed (hard=false)
+Sep-05 15:18:58.271 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'PublishDir' shutdown completed (hard=false)
+Sep-05 15:18:58.281 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=2; failedCount=0; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=1s; failedDuration=0ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=1; peakMemory=10 GB; ]
+Sep-05 15:18:58.281 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
+Sep-05 15:18:58.282 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Sep-05 15:18:58.826 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Sep-05 15:18:58.923 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Sep-05 15:18:58.933 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-schema@2.3.0'
+Sep-05 15:18:58.933 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-schema
+Sep-05 15:18:58.934 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'FileTransfer' shutdown completed (hard=false)
+Sep-05 15:18:58.935 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

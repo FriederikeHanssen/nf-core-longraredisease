@@ -1,0 +1,29 @@
+task_id	hash	native_id	script
+1	34/7b3ab3	67031	
+    samtools \
+        merge \
+        --threads 0 \
+        --threads 8 \
+         \
+        test_read_length.bam \
+        1/test_pass_fc1e9677_854ad362_0.bam
+
+    cat <<-END_VERSIONS > versions.yml
+    "bam2fastq_subworkflow:SAMTOOLS_MERGE":
+        samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+    END_VERSIONS
+    
+2	ac/a43394	67080	
+    samtools \
+        fastq \
+        -T MM,ML,mv --threads 8 \
+        --threads 0 \
+        -0 test_read_length_other.fastq.gz \
+        test_read_length.bam \
+        -1 test_read_length_1.fastq.gz -2 test_read_length_2.fastq.gz -s test_read_length_singleton.fastq.gz
+
+    cat <<-END_VERSIONS > versions.yml
+    "bam2fastq_subworkflow:SAMTOOLS_FASTQ":
+        samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+    END_VERSIONS
+    

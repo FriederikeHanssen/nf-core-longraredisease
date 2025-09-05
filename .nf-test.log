@@ -1,0 +1,61 @@
+Sep-05 15:18:47.879 [main] INFO  com.askimed.nf.test.App - nf-test 0.9.2
+Sep-05 15:18:47.892 [main] INFO  com.askimed.nf.test.App - Arguments: [test, tests/bam2fastq.nf.test]
+Sep-05 15:18:48.845 [main] INFO  com.askimed.nf.test.App - Nextflow Version: 24.10.4
+Sep-05 15:18:48.847 [main] INFO  com.askimed.nf.test.commands.RunTestsCommand - Load config from file /home/nmahfel/nf-training/nf-core-nanoraredx/nf-test.config...
+Sep-05 15:18:49.357 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Loaded 32 files from directory /home/nmahfel/nf-training/nf-core-nanoraredx in 0.042 sec
+Sep-05 15:18:49.359 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Found 1 files containing tests.
+Sep-05 15:18:49.360 [main] DEBUG com.askimed.nf.test.lang.dependencies.DependencyResolver - Found files: [/home/nmahfel/nf-training/nf-core-nanoraredx/tests/bam2fastq.nf.test]
+Sep-05 15:18:49.615 [main] INFO  com.askimed.nf.test.commands.RunTestsCommand - Found 5 tests to execute.
+Sep-05 15:18:49.616 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Started test plan
+Sep-05 15:18:49.616 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Running testsuite 'Test Subworkflow bam2fastq_subworkflow with methylation tag preservation' from file '/home/nmahfel/nf-training/nf-core-nanoraredx/tests/bam2fastq.nf.test'.
+Sep-05 15:18:49.616 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test 'a798a8c7: Should run successfully with multiple BAM files and preserve methylation tags'. type: com.askimed.nf.test.lang.workflow.WorkflowTest
+Sep-05 15:18:59.007 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test 'a798a8c7: Should run successfully with multiple BAM files and preserve methylation tags' finished. status: FAILED
+org.codehaus.groovy.runtime.powerassert.PowerAssertionError: 1 of 7 assertions failed
+	at com.askimed.nf.test.lang.extensions.GlobalMethods.assertAll(GlobalMethods.java:48)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:107)
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:323)
+	at org.codehaus.groovy.runtime.callsite.StaticMetaMethodSite.invoke(StaticMetaMethodSite.java:44)
+	at org.codehaus.groovy.runtime.callsite.StaticMetaMethodSite.callStatic(StaticMetaMethodSite.java:100)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallStatic(CallSiteArray.java:55)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callStatic(AbstractCallSite.java:217)
+	at bam2fastq_nf$_run_closure1$_closure2$_closure8.doCall(bam2fastq.nf.test:38)
+	at bam2fastq_nf$_run_closure1$_closure2$_closure8.doCall(bam2fastq.nf.test)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:107)
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:323)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:274)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1030)
+	at groovy.lang.Closure.call(Closure.java:427)
+	at groovy.lang.Closure.call(Closure.java:406)
+	at com.askimed.nf.test.lang.TestCode.execute(TestCode.java:16)
+	at com.askimed.nf.test.lang.workflow.WorkflowTest.execute(WorkflowTest.java:178)
+	at com.askimed.nf.test.core.TestExecutionEngine.execute(TestExecutionEngine.java:165)
+	at com.askimed.nf.test.commands.RunTestsCommand.execute(RunTestsCommand.java:298)
+	at com.askimed.nf.test.commands.AbstractCommand.call(AbstractCommand.java:43)
+	at com.askimed.nf.test.commands.AbstractCommand.call(AbstractCommand.java:18)
+	at picocli.CommandLine.executeUserObject(CommandLine.java:1953)
+	at picocli.CommandLine.access$1300(CommandLine.java:145)
+	at picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2352)
+	at picocli.CommandLine$RunLast.handle(CommandLine.java:2346)
+	at picocli.CommandLine$RunLast.handle(CommandLine.java:2311)
+	at picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2179)
+	at picocli.CommandLine.execute(CommandLine.java:2078)
+	at com.askimed.nf.test.App.run(App.java:39)
+	at com.askimed.nf.test.App.main(App.java:46)
+Sep-05 15:18:59.012 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test '40a81fc7: Should preserve methylation tags in single BAM conversion'. type: com.askimed.nf.test.lang.workflow.WorkflowTest
+Sep-05 15:19:06.932 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test '40a81fc7: Should preserve methylation tags in single BAM conversion' finished. status: PASSED
+Sep-05 15:19:06.932 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test 'b2df33ac: Should preserve long-read metadata correctly'. type: com.askimed.nf.test.lang.workflow.WorkflowTest
+Sep-05 15:19:14.738 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test 'b2df33ac: Should preserve long-read metadata correctly' finished. status: PASSED
+Sep-05 15:19:14.738 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test 'dffb333a: Should handle unmapped reads with methylation tags correctly'. type: com.askimed.nf.test.lang.workflow.WorkflowTest
+Sep-05 15:19:23.090 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test 'dffb333a: Should handle unmapped reads with methylation tags correctly' finished. status: PASSED
+Sep-05 15:19:23.090 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test '3d6f91d2: Should maintain read length distribution for long reads'. type: com.askimed.nf.test.lang.workflow.WorkflowTest
+Sep-05 15:19:31.059 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test '3d6f91d2: Should maintain read length distribution for long reads' finished. status: PASSED
+Sep-05 15:19:31.060 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Testsuite 'Test Subworkflow bam2fastq_subworkflow with methylation tag preservation' finished. snapshot file: false, skipped tests: false, failed tests: true
+Sep-05 15:19:31.060 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Executed 5 tests. 1 tests failed. Done!

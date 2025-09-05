@@ -1,20 +1,22 @@
 name: "truvari_collapse"
-description: Given baseline and comparison sets of variants, calculate the recall/precision/f-measure
+description: "Collapse structural variants using Truvari to merge similar variants within a single VCF file"
 keywords:
   - structural variants
   - sv
   - vcf
-  - benchmark
-  - comparison
+  - collapse
+  - merge
+  - truvari
 tools:
   - "truvari":
-      description: "Structural variant comparison tool for VCFs"
+      description: "Structural variant toolkit for VCF files"
       homepage: "https://github.com/ACEnglish/truvari"
       documentation: "https://github.com/acenglish/truvari/wiki"
       tool_dev_url: "https://github.com/ACEnglish/truvari"
       doi: "10.1186/s13059-022-02840-6"
       licence: ["MIT"]
       identifier: ""
+
 input:
   - - meta:
         type: map
@@ -23,156 +25,62 @@ input:
           e.g. `[ id:'test' ]`
     - vcf:
         type: file
-        description: Input SV VCF file
-        pattern: "*.vcf.gz"
+        description: Input SV VCF file to collapse
+        pattern: "*.{vcf,vcf.gz}"
         ontologies:
-          - edam: http://edamontology.org/format_3989 # GZIP format
+          - edam: http://edamontology.org/format_3016 # VCF
     - tbi:
         type: file
         description: Input SV VCF index file
-        pattern: "*.vcf.gz.tbi"
-        ontologies: []
-    - truth_vcf:
-        type: file
-        description: Input VCF file with truth SVs
-        pattern: "*.vcf.gz"
-        ontologies:
-          - edam: http://edamontology.org/format_3989 # GZIP format
-    - truth_tbi:
-        type: file
-        description: Input VCF index file with truth SVs
-        pattern: "*.vcf.gz.tbi"
+        pattern: "*.{tbi,csi}"
         ontologies: []
     - bed:
         type: file
-        description: BED file containing regions to compare
+        description: Optional BED file containing regions to restrict analysis
         pattern: "*.bed"
-        ontologies: []
-  - - meta2:
-        type: map
-        description: |
-          Groovy Map containing fasta information
-          e.g. `[ id:'test' ]`
-    - fasta:
-        type: file
-        description: Reference FASTA file
-        pattern: "*.{fasta,fa,fna}"
-        ontologies: []
-  - - meta3:
-        type: map
-        description: |
-          Groovy Map containing fasta index information
-          e.g. `[ id:'test' ]`
-    - fai:
-        type: file
-        description: Reference FASTA index file
-        pattern: "*.fai"
-        ontologies: []
+        ontologies:
+          - edam: http://edamontology.org/format_3003 # BED
+  - - refdist:
+        type: integer
+        description: Reference distance for merging variants (bp)
+  - - pctsim:
+        type: float
+        description: Percent similarity threshold for merging variants (0.0-1.0)
+  - - pctseq:
+        type: float
+        description: Percent sequence similarity threshold for merging variants (0.0-1.0)
+  - - passonly:
+        type: boolean
+        description: Flag to only keep PASS variants in output
+  - - dup_to_ins:
+        type: boolean
+        description: Flag to treat duplications as insertions during merging
+
 output:
-  fn_vcf:
+  merged_vcf:
     - - meta:
           type: map
           description: |
             Groovy Map containing sample information
             e.g. `[ id:'test' ]`
-      - "*.fn.vcf.gz":
+      - "*_merged.vcf":
           type: file
-          description: VCF file with false negatives
-          pattern: "*.fn.vcf.gz"
+          description: VCF file containing merged structural variants
+          pattern: "*_merged.vcf"
           ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  fn_tbi:
+            - edam: http://edamontology.org/format_3016 # VCF
+  collapsed_vcf:
     - - meta:
           type: map
           description: |
             Groovy Map containing sample information
             e.g. `[ id:'test' ]`
-      - "*.fn.vcf.gz.tbi":
+      - "*_collapsed.vcf":
           type: file
-          description: VCF index file with false negatives
-          pattern: "*.fn.vcf.gz.tbi"
-          ontologies: []
-  fp_vcf:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.fp.vcf.gz":
-          type: file
-          description: VCF file with false positives
-          pattern: "*.fp.vcf.gz"
+          description: VCF file containing collapsed structural variants
+          pattern: "*_collapsed.vcf"
           ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  fp_tbi:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.fp.vcf.gz.tbi":
-          type: file
-          description: VCF index file with false positives
-          pattern: "*.fp.vcf.gz.tbi"
-          ontologies: []
-  tp_base_vcf:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.tp-base.vcf.gz":
-          type: file
-          description: VCF file with base true positives
-          pattern: "*.tp-base.vcf.gz"
-          ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  tp_base_tbi:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.tp-base.vcf.gz.tbi":
-          type: file
-          description: VCF index file with base true positives
-          pattern: "*.tp-base.vcf.gz.tbi"
-          ontologies: []
-  tp_comp_vcf:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.tp-comp.vcf.gz":
-          type: file
-          description: VCF file with compared true positives
-          pattern: "*.tp-comp.vcf.gz"
-          ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  tp_comp_tbi:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.tp-comp.vcf.gz.tbi":
-          type: file
-          description: VCF index file with compared true positives
-          pattern: "*.tp-comp.vcf.gz.tbi"
-          ontologies: []
-  summary:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'test' ]`
-      - "*.summary.json":
-          type: file
-          description: Summary JSON file with results from the benchmark
-          pattern: "*.summary.json"
-          ontologies:
-            - edam: http://edamontology.org/format_3464 # JSON
+            - edam: http://edamontology.org/format_3016 # VCF
   versions:
     - versions.yml:
         type: file
@@ -180,7 +88,8 @@ output:
         pattern: "versions.yml"
         ontologies:
           - edam: http://edamontology.org/format_3750 # YAML
+
 authors:
-  - "@nvnieuwk"
+  - "@nourmahfel"
 maintainers:
-  - "@nvnieuwk"
+  - "@nourmahfel"

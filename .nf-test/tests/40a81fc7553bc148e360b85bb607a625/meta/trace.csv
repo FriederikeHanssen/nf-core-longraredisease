@@ -1,0 +1,29 @@
+task_id	hash	native_id	script
+1	c8/56b6d8	66183	
+    samtools \
+        merge \
+        --threads 0 \
+        --threads 8 \
+         \
+        test_methyl_single.bam \
+        1/test_pass_fc1e9677_854ad362_0.bam
+
+    cat <<-END_VERSIONS > versions.yml
+    "bam2fastq_subworkflow:SAMTOOLS_MERGE":
+        samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+    END_VERSIONS
+    
+2	31/e83c1e	66242	
+    samtools \
+        fastq \
+        -T MM,ML,mv --threads 8 \
+        --threads 0 \
+        -0 test_methyl_single_other.fastq.gz \
+        test_methyl_single.bam \
+        -1 test_methyl_single_1.fastq.gz -2 test_methyl_single_2.fastq.gz -s test_methyl_single_singleton.fastq.gz
+
+    cat <<-END_VERSIONS > versions.yml
+    "bam2fastq_subworkflow:SAMTOOLS_FASTQ":
+        samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+    END_VERSIONS
+    
