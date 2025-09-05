@@ -1,2 +1,0 @@
-"bam2fastq_subworkflow:SAMTOOLS_MERGE":
-    samtools: 1.21 
