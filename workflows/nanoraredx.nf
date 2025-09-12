@@ -48,9 +48,8 @@ include { merge_snv_subworkflow              } from '../subworkflows/local/merge
 include { longphase_subworkflow              } from '../subworkflows/local/longphase.nf'
 
 // CNV calling subworkflows
-include { cnv_subworkflow                    } from '../subworkflows/local/cnv.nf'
-include { cnv_qdnaseq_subworkflow            } from '../subworkflows/local/cnv_qdnaseq.nf'
-
+include { cnv_spectre_subworkflow                    } from '../subworkflows/local/cnv_spectre.nf'
+include { HIFICNV                                    } from '../modules/local/hificnv/main.nf'
 // STR analysis subworkflow
 include { str_subworkflow                    } from '../subworkflows/local/str.nf'
 
@@ -277,7 +276,7 @@ workflow nanoraredx {
     }
     
     // Run mosdepth when needed
-    if (params.sv || params.cnv || params.generate_coverage) {
+    if (params.sv || params.cnv_spectre || params.generate_coverage) {
         mosdepth_subworkflow(
             ch_input_bam_bai_bed,
             [[:], []]
@@ -554,7 +553,7 @@ workflow nanoraredx {
 =======================================================================================
 */
 
-    if (params.cnv) {
+    if (params.cnv_spectre) {
         // Spectre CNV calling - requires SNV data unless using test data
         if (params.use_test_data) {
             // Test mode with hardcoded parameters
@@ -567,15 +566,15 @@ workflow nanoraredx {
             tuple(meta, fasta)
             }
             
-            cnv_subworkflow(
+            cnv_spectre_subworkflow(
                 params.spectre_test_mosdepth,
                 ch_spectre_test_reference,
                 params.spectre_test_clair3_vcf,
                 params.spectre_metadata,
                 params.spectre_blacklist
             )
-            ch_cnv_vcf = cnv_subworkflow.out.vcf
-            ch_versions = ch_versions.mix(cnv_subworkflow.out.versions)
+            ch_cnv_vcf = cnv_spectre_subworkflow.out.vcf
+            ch_versions = ch_versions.mix(cnv_spectre_subworkflow.out.versions)
         } 
         
         else {
@@ -600,7 +599,7 @@ workflow nanoraredx {
             tuple(meta, fasta)
         }
         
-        cnv_subworkflow(
+        cnv_spectre_subworkflow(
         ch_spectre_bed,
         ch_spectre_reference,
         ch_spectre_vcf,
@@ -608,33 +607,31 @@ workflow nanoraredx {
         params.spectre_blacklist
         )
 
-        ch_cnv_vcf = cnv_subworkflow.out.vcf
-        ch_versions = ch_versions.mix(cnv_subworkflow.out.versions)
+        ch_cnv_vcf = cnv_spectre_subworkflow.out.vcf
+        ch_versions = ch_versions.mix(cnv_spectre_subworkflow.out.versions)
         }
 
-    } else {
+    } 
+
+    else if (params.cnv_hificnv){
+        HIFICNV(
+            ch_input_bam,
+            ch_fasta,
+            params.exclude_bed_hificnv
+        )
+        ch_cnv_vcf = HIFICNV.out.vcf
+        ch_versions = ch_versions.mix(HIFICNV.out.versions)
+    }
+    
+    else {
         // Create empty channel when CNV calling is disabled
         ch_cnv_vcf = Channel.empty()
     }
     
-    if (params.cnv && params.run_qdnaseq) {
-        // QDNAseq doesn't need mosdepth or SNV data
-        cnv_qdnaseq_subworkflow(
-            ch_input_bam,
-            params.genome_build,
-            params.qdnaseq_bin_size,
-            params.method,
-            params.cutoff,
-            params.cutoff_del,
-            params.cutoff_loss,
-            params.cutoff_gain,
-            params.cellularity
-        )
-        ch_versions = ch_versions.mix(cnv_qdnaseq_subworkflow.out.versions)
-    }
+
 
 /*
-================================================================================
+===============================================================================
                         SHORT TANDEM REPEAT ANALYSIS
 ================================================================================
 */

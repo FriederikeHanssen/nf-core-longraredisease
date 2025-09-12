@@ -2,7 +2,7 @@
 
 include { MODKIT_PILEUP } from '../../modules/nf-core/modkit/pileup/main'
 include { MODKIT_PILEUP as MODKIT_PILEUP_CPG } from '../../modules/nf-core/modkit/pileup/main'
-
+include { MODKIT_PILEUP as MODKIT_BEDGRAPH } from '../../modules/nf-core/modkit/pileup/main'
 workflow methyl_subworkflow {
 
     take:
@@ -23,6 +23,12 @@ workflow methyl_subworkflow {
     )
 
     MODKIT_PILEUP_CPG (
+        bam_bai,
+        fasta,
+        bed
+    )
+
+    MODKIT_BEDGRAPH (
         bam_bai,
         fasta,
         bed

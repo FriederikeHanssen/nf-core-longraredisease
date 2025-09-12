@@ -6,7 +6,7 @@ include { BCFTOOLS_SORT as BCFTOOLS_SORT_SPECTRE } from '../../modules/nf-core/b
 include { TABIX_BGZIPTABIX as TABIX_BGZIPTABIX_SPECTRE} from '../../modules/nf-core/tabix/bgziptabix/main.nf'
 
 
-workflow cnv_subworkflow {
+workflow cnv_spectre_subworkflow {
     take:
     ch_mosdepth_output    // channel: [ val(meta), path(mosdepth_dir) ]
     ch_reference          // channel: [ val(meta2), path(fasta) ]
