@@ -2,7 +2,7 @@ process HIFICNV {
     tag "$meta.id"
     label 'process_medium'
 
-    container "quay.io/biocontainers/hificnv:1.0.0--h9ee0642_0"
+    container "community.wave.seqera.io/library/hificnv_htslib:ec2ecefb635052b8"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -33,10 +33,38 @@ process HIFICNV {
         --output-prefix ${prefix} \\
         --threads ${task.cpus}
 
+    # Fix sample name in VCF and rename files
+    
+    if [ -f "${prefix}.Sample0.vcf.gz" ]; then
+    gunzip -c "${prefix}.Sample0.vcf.gz" | \\
+    sed 's/Sample0/${meta.id}/g' | \\
+    bgzip > "${prefix}.vcf.gz"
+    
+    # Index the new VCF
+    
+    tabix -p vcf "${prefix}.vcf.gz"
+    
+    # Remove original
+    
+    rm "${prefix}.Sample0.vcf.gz"
+    fi
+    
+    # Rename other files
+    
+    if [ -f "${prefix}.Sample0.depth.bw" ]; then
+    mv "${prefix}.Sample0.depth.bw" "${prefix}.depth.bw"
+    fi
+    
+    if [ -f "${prefix}.Sample0.copynum.bedgraph" ]; then
+    mv "${prefix}.Sample0.copynum.bedgraph" "${prefix}.copynum.bedgraph"
+    fi
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hificnv: \$(hificnv -V | sed 's/hificnv //')
+    hificnv: \$(hificnv -V | sed 's/hificnv //')
+    
     END_VERSIONS
+    
     """
 
     stub:

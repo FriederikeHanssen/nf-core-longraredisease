@@ -361,23 +361,60 @@
             "fa_icon": "fas fa-chart-line",
             "description": "Options for copy number variant calling.",
             "properties": {
-                "cnv_hificnv": {
+                "run_qdnaseq": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable CNV calling with HiFiCNV.",
+                    "description": "Run QDNAseq for CNV calling.",
                     "fa_icon": "fas fa-chart-area"
                 },
-                "exclude_bed_hificnv": {
+                "genome_build": {
                     "type": "string",
-                    "format": "file-path",
-                    "description": "Path to BED file for regions to exclude in HiFiCNV.",
-                    "fa_icon": "fas fa-ban"
+                    "default": "hg38",
+                    "enum": ["hg19", "hg38"],
+                    "description": "Genome build for CNV calling.",
+                    "fa_icon": "fas fa-dna"
                 },
-                "cnv_spectre": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enable CNV calling with Spectre.",
-                    "fa_icon": "fas fa-vial"
+                "qdnaseq_bin_size": {
+                    "type": "integer",
+                    "default": 1000,
+                    "description": "Bin size for QDNAseq.",
+                    "fa_icon": "fas fa-th"
+                },
+                "method": {
+                    "type": "string",
+                    "default": "cutoff",
+                    "description": "Method for CNV calling.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "cutoff": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "General cutoff value.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "cutoff_del": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "Cutoff for deletions.",
+                    "fa_icon": "fas fa-minus"
+                },
+                "cutoff_loss": {
+                    "type": "number",
+                    "default": 1.5,
+                    "description": "Cutoff for losses.",
+                    "fa_icon": "fas fa-arrow-down"
+                },
+                "cutoff_gain": {
+                    "type": "number",
+                    "default": 2.5,
+                    "description": "Cutoff for gains.",
+                    "fa_icon": "fas fa-arrow-up"
+                },
+                "cellularity": {
+                    "type": "number",
+                    "default": 1,
+                    "description": "Sample cellularity.",
+                    "fa_icon": "fas fa-cell"
                 },
                 "use_test_data": {
                     "type": "boolean",

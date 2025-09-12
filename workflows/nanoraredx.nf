@@ -20,7 +20,7 @@ include { BAM_STATS_SAMTOOLS                 } from '../subworkflows/nf-core/bam
 include { SAMTOOLS_INDEX                     } from '../modules/nf-core/samtools/index/main'
 include { SAMTOOLS_FAIDX                     } from '../modules/nf-core/samtools/faidx/main.nf'
 include { bam2fastq_subworkflow              } from '../subworkflows/local/bam2fastq.nf'
-include { minimap2_align_subworkflow     } from '../subworkflows/local/minimap2_align.nf'
+include { alignment_subworkflow              } from '../subworkflows/local/align.nf'
 include { CAT_FASTQ                          } from '../modules/nf-core/cat/fastq/main.nf'
 include { NANOPLOT as NANOPLOT_QC            } from '../modules/nf-core/nanoplot/main'
 
@@ -147,24 +147,27 @@ workflow nanoraredx {
                 return [meta, fastq_files]
             }
 
-        // Align FASTQ reads to reference genome using minimap2
-        minimap2_align_subworkflow(
-            ch_fasta,
-            ch_fastq_files
-        )
-        ch_versions = ch_versions.mix(minimap2_align_subworkflow.out.versions)
-
-
-        // Set final aligned BAM channels from minimap2 output
-        ch_final_sorted_bam = minimap2_align_subworkflow.out.bam
-        ch_final_sorted_bai = minimap2_align_subworkflow.out.bai
-
         // Prepare input for nanoplot from FASTQ
         CAT_FASTQ(
             ch_fastq_files.map { meta, fastq_list ->
                 [meta + [single_end: true], fastq_list]
             }
         )
+        
+        // Align FASTQ reads to reference genome using minimap2
+        alignment_subworkflow(
+            ch_fasta,
+            CAT_FASTQ.out.reads,
+            params.winnowmap_kmers
+        )
+
+        ch_versions = ch_versions.mix(alignment_subworkflow.out.versions)
+
+
+        // Set final aligned BAM channels from minimap2 output
+        ch_final_sorted_bam = alignment_subworkflow.out.bam
+        ch_final_sorted_bai = alignment_subworkflow.out.bai
+
         ch_nanoplot = CAT_FASTQ.out.reads
         ch_versions = ch_versions.mix(CAT_FASTQ.out.versions)
     }
@@ -201,14 +204,16 @@ workflow nanoraredx {
 
         ch_versions = ch_versions.mix(bam2fastq_subworkflow.out.versions)
         // Align FASTQ reads to reference genome using minimap2
-        minimap2_align_subworkflow(
+        alignment_subworkflow(
             ch_fasta,
-            bam2fastq_subworkflow.out.other
+            bam2fastq_subworkflow.out.other,
+            params.winnowmap_kmers
         )
-        ch_versions = ch_versions.mix(minimap2_align_subworkflow.out.versions)
+
+        ch_versions = ch_versions.mix(alignment_subworkflow.out.versions)
         // Set final aligned BAM channels from minimap2 output
-        ch_final_sorted_bam = minimap2_align_subworkflow.out.bam
-        ch_final_sorted_bai = minimap2_align_subworkflow.out.bai
+        ch_final_sorted_bam = alignment_subworkflow.out.bam
+        ch_final_sorted_bai = alignment_subworkflow.out.bai
 
         // Prepare input for nanoplot from FASTQ
         ch_nanoplot = bam2fastq_subworkflow.out.other
@@ -553,6 +558,9 @@ workflow nanoraredx {
 =======================================================================================
 */
 
+    ch_spectre_vcf = Channel.empty()
+    ch_hificnv_vcf = Channel.empty()
+
     if (params.cnv_spectre) {
         // Spectre CNV calling - requires SNV data unless using test data
         if (params.use_test_data) {
@@ -573,7 +581,7 @@ workflow nanoraredx {
                 params.spectre_metadata,
                 params.spectre_blacklist
             )
-            ch_cnv_vcf = cnv_spectre_subworkflow.out.vcf
+            ch_spectre_vcf = cnv_spectre_subworkflow.out.vcf
             ch_versions = ch_versions.mix(cnv_spectre_subworkflow.out.versions)
         } 
         
@@ -607,26 +615,26 @@ workflow nanoraredx {
         params.spectre_blacklist
         )
 
-        ch_cnv_vcf = cnv_spectre_subworkflow.out.vcf
+        ch_spectre_vcf = cnv_spectre_subworkflow.out.vcf
         ch_versions = ch_versions.mix(cnv_spectre_subworkflow.out.versions)
         }
 
     } 
 
-    else if (params.cnv_hificnv){
+    if (params.cnv_hificnv){
+        
         HIFICNV(
             ch_input_bam,
             ch_fasta,
             params.exclude_bed_hificnv
         )
-        ch_cnv_vcf = HIFICNV.out.vcf
+        ch_hificnv_vcf = HIFICNV.out.vcf
         ch_versions = ch_versions.mix(HIFICNV.out.versions)
     }
-    
-    else {
-        // Create empty channel when CNV calling is disabled
-        ch_cnv_vcf = Channel.empty()
-    }
+
+    ch_cnv_vcf = params.cnv_spectre ? ch_spectre_vcf : 
+             params.cnv_hificnv ? ch_hificnv_vcf : 
+             Channel.empty()
     
 
 
